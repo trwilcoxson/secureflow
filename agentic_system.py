@@ -958,63 +958,87 @@ def generate_architecture_diagram() -> str:
     ax.set_xlim(0, 14)
     ax.set_ylim(0, 8)
     ax.axis("off")
-    ax.set_title("SecureFlow Architecture", fontsize=16, fontweight="bold", pad=20)
+    ax.set_xlim(-0.5, 11)
+    ax.set_ylim(-1.0, 9.5)
 
-    def add_box(x, y, w, h, label, color, fontsize=9):
+    def add_box(x, y, w, h, label, color, fontsize=9, edgecolor="black"):
         box = FancyBboxPatch(
-            (x, y), w, h, boxstyle="round,pad=0.1",
-            facecolor=color, edgecolor="black", linewidth=1.5,
+            (x, y), w, h, boxstyle="round,pad=0.12",
+            facecolor=color, edgecolor=edgecolor, linewidth=1.5,
         )
         ax.add_patch(box)
         ax.text(x + w / 2, y + h / 2, label, ha="center", va="center",
-                fontsize=fontsize, fontweight="bold", wrap=True)
+                fontsize=fontsize, fontweight="bold")
 
-    def add_arrow(x1, y1, x2, y2, label=""):
+    def add_arrow(x1, y1, x2, y2, label="", color="#444"):
         ax.annotate(
             "", xy=(x2, y2), xytext=(x1, y1),
-            arrowprops=dict(arrowstyle="->", lw=1.5, color="#333"),
+            arrowprops=dict(arrowstyle="-|>", lw=1.5, color=color,
+                            mutation_scale=15),
         )
         if label:
             mx, my = (x1 + x2) / 2, (y1 + y2) / 2
-            ax.text(mx, my + 0.15, label, ha="center", fontsize=7, color="#555")
+            ax.text(mx + 0.15, my, label, ha="left", fontsize=7,
+                    color="#555", style="italic")
 
-    # GitHub Issue (trigger)
-    add_box(0.5, 5.5, 2.5, 1.2, "GitHub Issue\n(feature-request)", "#dbeafe", 9)
+    # --- Layer labels (left side) ---
+    for ly, txt in [(8.5, "TRIGGER"), (6.3, "ORCHESTRATION"),
+                    (3.6, "AGENTS"), (1.2, "LLM"), (-0.3, "OUTPUT")]:
+        ax.text(-0.3, ly, txt, ha="right", va="center", fontsize=7,
+                color="#999", fontweight="bold", rotation=0)
 
-    # GitHub Action
-    add_box(4.0, 5.5, 2.5, 1.2, "GitHub Action\nWorkflow", "#fef3c7", 9)
-    add_arrow(3.0, 6.1, 4.0, 6.1, "label trigger")
+    # --- Row 1: Trigger ---
+    add_box(1.5, 8.0, 3.0, 1.0, "GitHub Issue\n(feature-request label)", "#dbeafe", 9)
+    add_box(6.0, 8.0, 3.0, 1.0, "GitHub Action\nWorkflow", "#fef3c7", 9)
+    add_arrow(4.5, 8.5, 6.0, 8.5, "label event")
 
-    # Orchestrator
-    add_box(4.0, 3.2, 2.5, 1.2, "Orchestrator\n(asyncio.gather)", "#e0e7ff", 9)
-    add_arrow(5.25, 5.5, 5.25, 4.4, "invoke")
+    # --- Row 2: Orchestrator ---
+    add_box(3.5, 5.8, 3.5, 1.0, "Orchestrator\n(deterministic Python)", "#e0e7ff", 9)
+    add_arrow(7.5, 8.0, 5.25, 6.8, "invoke")
 
-    # Agents (3 in parallel)
-    add_box(0.3, 0.8, 2.8, 1.2, "Security Agent\n(Risk Screening)", "#fee2e2", 8)
-    add_box(4.0, 0.8, 2.5, 1.2, "Privacy Agent\n(Risk Screening)", "#dcfce7", 8)
-    add_box(7.5, 0.8, 2.5, 1.2, "GRC Agent\n(Risk Screening)", "#fef9c3", 8)
+    # --- Row 3: Agents (parallel) ---
+    add_box(0.0, 3.0, 3.0, 1.2, "Security Agent", "#fee2e2", 9, "#ef4444")
+    add_box(3.8, 3.0, 3.0, 1.2, "Privacy Agent", "#dcfce7", 9, "#22c55e")
+    add_box(7.5, 3.0, 3.0, 1.2, "GRC Agent", "#fef9c3", 9, "#eab308")
 
-    add_arrow(4.5, 3.2, 1.7, 2.0, "parallel")
-    add_arrow(5.25, 3.2, 5.25, 2.0, "parallel")
-    add_arrow(6.0, 3.2, 8.75, 2.0, "parallel")
+    # Instruction file labels under each agent
+    for ax_x, fname in [(1.5, "instructions/\nsecurity.md"),
+                         (5.3, "instructions/\nprivacy.md"),
+                         (9.0, "instructions/\ngrc.md")]:
+        ax.text(ax_x, 2.7, fname, ha="center", va="top", fontsize=6,
+                color="#888", style="italic")
 
-    # OpenAI API
-    add_box(3.7, -0.5, 3.0, 0.8, "OpenAI API (gpt-4o-mini)", "#f3e8ff", 8)
-    add_arrow(1.7, 0.8, 4.5, 0.3)
-    add_arrow(5.25, 0.8, 5.25, 0.3)
-    add_arrow(8.75, 0.8, 6.0, 0.3)
+    add_arrow(4.2, 5.8, 1.5, 4.2, "parallel")
+    add_arrow(5.25, 5.8, 5.3, 4.2, "parallel")
+    add_arrow(6.3, 5.8, 9.0, 4.2, "parallel")
 
-    # Review Issues output
-    add_box(8.5, 3.2, 2.8, 1.2, "Review Issues\n(gh issue create)", "#dbeafe", 9)
-    add_arrow(6.5, 3.8, 8.5, 3.8, "create")
+    # --- Row 4: LLM ---
+    add_box(3.2, 0.8, 4.0, 0.8, "OpenAI API (gpt-4o-mini)", "#f3e8ff", 8)
+    add_arrow(1.5, 3.0, 4.5, 1.6)
+    add_arrow(5.3, 3.0, 5.3, 1.6)
+    add_arrow(9.0, 3.0, 6.5, 1.6)
 
-    # Summary Comment
-    add_box(8.5, 5.5, 2.8, 1.2, "Summary Comment\non Source Issue", "#f0fdf4", 9)
-    add_arrow(9.9, 4.4, 9.9, 5.5, "comment")
+    # --- Row 5: Outputs (below LLM) ---
+    add_box(0.5, -0.8, 3.5, 1.0, "Review Issues\n(gh issue create)", "#dbeafe", 8)
+    add_box(5.5, -0.8, 3.5, 1.0, "Summary Comment\non Source Issue", "#f0fdf4", 8)
 
-    # Review Summary (state)
-    add_box(11.8, 3.2, 1.8, 1.2, "Review\nSummary\n(state)", "#e5e7eb", 8)
-    add_arrow(11.3, 3.8, 11.8, 3.8)
+    # Return arrows: agents return to orchestrator, orchestrator creates outputs
+    # Show as: agents -> (return structured output) -> orchestrator -> outputs
+    # Use a "results return" label on the parallel arrows (already shown)
+    # Then orchestrator -> outputs via side paths
+    ax.annotate("", xy=(2.25, 0.2), xytext=(2.25, 0.8),
+                arrowprops=dict(arrowstyle="-|>", lw=1.5, color="#444",
+                                mutation_scale=15))
+    ax.text(2.25, 0.55, "create", ha="center", fontsize=7, color="#555",
+            style="italic")
+    ax.annotate("", xy=(7.25, 0.2), xytext=(7.25, 0.8),
+                arrowprops=dict(arrowstyle="-|>", lw=1.5, color="#444",
+                                mutation_scale=15))
+    ax.text(7.25, 0.55, "post", ha="center", fontsize=7, color="#555",
+            style="italic")
+
+    ax.set_title("SecureFlow Architecture", fontsize=14, fontweight="bold",
+                 pad=15, loc="center")
 
     path = os.path.join(FIGURES_DIR, "fig1_architecture_diagram.png")
     plt.tight_layout()

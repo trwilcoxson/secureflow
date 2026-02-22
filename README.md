@@ -39,13 +39,37 @@ flowchart TD
     style N fill:#f0f9ff,stroke:#3b82f6
 ```
 
-Each agent screens for different categories of risk:
+The system is organized into four layers:
+
+### Layer 1: Trigger
+A GitHub Action watches for the `feature-request` label on issues. When it fires, it calls `python agentic_system.py --issue-number N`, which reads the issue body via `gh issue view --json`.
+
+### Layer 2: Orchestrator
+A **deterministic Python function** (not an LLM agent) that coordinates the pipeline. It validates input (20--10,000 chars), dispatches all three agents in parallel via `asyncio.gather()`, collects their structured outputs, creates GitHub issues for any domain that flagged risk, computes a GO/CONDITIONAL/NO-GO recommendation, and posts a summary comment on the source issue. All coordination logic is explicit code -- no LLM decides "what to do next."
+
+### Layer 3: Specialist Agents
+Three Pydantic AI agents run in parallel, each screening for different risk categories:
 
 | Agent | Screens For | Example Triggers |
 |-------|-------------|------------------|
 | **Security** | Attack surface, data exposure, auth gaps, third-party trust | New API endpoint, credentials in logs, missing MFA |
 | **Privacy** | PII collection, new data flows, automated decisions | User tracking, data shared with vendors, profiling |
 | **GRC** | Regulatory obligations, audit impact, vendor risk | Payment card data (PCI), health data (HIPAA), EU data (GDPR) |
+
+Each agent is defined as:
+```python
+security_agent = Agent(
+    instructions=SECURITY_INSTRUCTIONS,  # loaded from instructions/security.md
+    output_type=SecurityAnalysis,         # Pydantic model enforces structured output
+)
+```
+
+The LLM cannot return freeform text -- Pydantic AI forces the response into the schema (findings list, severity, requires_review flag). This is how the orchestrator can make deterministic routing decisions from LLM output.
+
+### Layer 4: Tools
+- **Issue creator**: `gh issue create` via `asyncio.create_subprocess_exec` (argument list, no shell injection). Creates labeled review issues routed to the right team.
+- **Issue reader**: `gh issue view --json` to extract feature descriptions from GitHub issues.
+- **Dry-run mode**: `DRY_RUN=true` by default -- logs what would be created without calling the GitHub API.
 
 ## Team Ownership
 

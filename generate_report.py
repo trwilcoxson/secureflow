@@ -306,8 +306,8 @@ def build_report():
         "balance of cost efficiency, low latency, and sufficient reasoning "
         "capability for triage-level analysis. Triage does not require the "
         "full capacity of larger models like gpt-4o; the task involves "
-        "structured risk identification against well-known frameworks, not "
-        "novel reasoning. The lower token cost of gpt-4o-mini enables "
+        "structured risk identification against concrete screening criteria, "
+        "not novel reasoning. The lower token cost of gpt-4o-mini enables "
         "frequent automated runs on every feature request without budget "
         "constraints, which is essential for a CI/CD-integrated tool."
     )
@@ -320,16 +320,18 @@ def build_report():
 
     pdf.subsection("Agent Personas")
     pdf.body_text(
-        "Each agent has a distinct persona defined in its instruction prompt. "
+        "Each agent has a distinct persona defined in its instruction file. "
         "The security agent acts as a 'Senior Product Security Engineer' "
-        "screening for risk signals like new attack surface, sensitive data "
-        "handling, and authentication gaps (informed by threat modeling "
-        "principles such as STRIDE (Shostack, 2014) and the OWASP Top 10 "
-        "(OWASP Foundation, 2021)). The privacy agent acts as a 'Privacy "
-        "Engineer' screening for new data classifications, personal data "
-        "flows, and third-party data sharing. The GRC agent acts as a 'GRC "
-        "Analyst' screening for compliance obligations like PCI-DSS, HIPAA, "
-        "and GDPR."
+        "screening for concrete risk signals: new attack surface, sensitive "
+        "data handling, authentication gaps, and third-party trust boundary "
+        "expansion. The privacy agent acts as a 'Privacy Engineer' screening "
+        "for new data classifications, personal data flows, automated "
+        "decision-making, and third-party data sharing. The GRC agent acts "
+        "as a 'GRC Analyst' screening for regulatory obligations triggered "
+        "by payment card data (PCI-DSS), health data (HIPAA), or EU personal "
+        "data (GDPR). Each agent's instructions are loaded from a separate "
+        "file in the instructions/ directory, enabling each team to own and "
+        "version their screening criteria independently."
     )
 
     pdf.subsection("Reasoning Framework")
