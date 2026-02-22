@@ -64,7 +64,7 @@ security_agent = Agent(
 )
 ```
 
-The LLM cannot return freeform text -- Pydantic AI forces the response into the schema (findings list, severity, requires_review flag). This is how the orchestrator can make deterministic routing decisions from LLM output.
+The LLM cannot return freeform text -- Pydantic AI forces the response into the schema (list of concerns, severity, requires_review flag). This is how the orchestrator can make deterministic routing decisions from LLM output.
 
 ### Layer 4: Tools
 - **Issue creator**: `gh issue create` via `asyncio.create_subprocess_exec` (argument list, no shell injection). Creates labeled review issues routed to the right team.
@@ -170,6 +170,7 @@ Consistent pass rate: **96--100%** (6-7/7). The specific case that fails varies 
 secureflow/
 ├── agentic_system.py              # Agents, orchestrator, tools, evaluation
 ├── generate_report.py             # PDF report generation (fpdf2)
+├── record_demo.py                 # Playwright browser recording script
 ├── instructions/
 │   ├── security.md                # Security screening criteria
 │   ├── privacy.md                 # Privacy screening criteria
@@ -177,6 +178,7 @@ secureflow/
 ├── .github/workflows/
 │   └── security-triage.yml        # GitHub Action workflow
 ├── figures/                       # Generated architecture + eval charts
+├── demo/                          # Demo video + screenshots
 ├── module_summary.pdf             # Project report
 ├── results.json                   # Latest demo + eval results
 ├── requirements.txt               # Python dependencies

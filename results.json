@@ -2,138 +2,129 @@
   "review": {
     "feature_name": "Payment Processing Integration",
     "feature_description": "Payment Processing Integration with Stripe\n\nWe are building a new payment processing module that integrates with the Stripe API\nfor handling customer transactions. Key details:\n\n- Accepts credit card payments (Visa, Mastercard, Amex) via Stripe Elements embedded\n  in our checkout page.\n- Stores a tokenized card reference (Stripe token) in our PostgreSQL database for\n  recurring billing.\n- Customer billing data (name, email, last 4 digits, billing address) is stored in\n  our `billing_profiles` table.\n- Webhook endpoint at /api/webhooks/stripe receives payment events (charge.succeeded,\n  charge.failed, refund.created) and updates order status.\n- Admin dashboard displays transaction history with customer name and partial card number.\n- Retry logic for failed charges: up to 3 automatic retries over 7 days.\n- Email receipts sent via SendGrid with order details and billing address.\n- No encryption at rest for the billing_profiles table currently.\n- API keys for Stripe and SendGrid stored in environment variables.\n- Logging includes full request/response bodies for debugging (will be turned off\n  in production).",
-    "timestamp": "2026-02-22T16:16:58.659222+00:00",
+    "timestamp": "2026-02-22T16:45:21.598746+00:00",
     "security_analysis": {
-      "summary": "The proposed payment processing integration with Stripe introduces several security risks related to sensitive data storage, API handling, and logging practices.",
-      "findings": [
+      "summary": "The proposed payment processing integration presents several security risks, particularly related to sensitive data handling and the logging of potentially sensitive information.",
+      "concerns": [
         {
-          "title": "Sensitive Data Storage without Encryption",
-          "description": "The customer billing data including name, email, billing address, and a tokenized card reference is stored in the database without encryption at rest. This presents a risk of data exposure in the event of a database breach.",
+          "title": "Sensitive Data Storage",
+          "description": "The integration stores billing data (name, email, billing address) and a tokenized card reference in the database without encryption at rest, increasing the risk of exposure in case of a data breach.",
           "severity": "high",
           "risk_category": "data exposure",
           "affected_component": "billing_profiles table",
-          "recommendation": "Implement encryption at rest for the billing_profiles table to protect sensitive customer data."
+          "recommendation": "Implement encryption at rest for sensitive data."
         },
         {
-          "title": "Webhook Endpoint Security",
-          "description": "The `/api/webhooks/stripe` endpoint receives sensitive payment events and updates order statuses. If not properly secured, it could be exploited for unauthorized updates or manipulation of order status.",
+          "title": "Webhook Endpoint Attack Surface",
+          "description": "The /api/webhooks/stripe endpoint allows for externally initiated events, which could be exploited if not properly secured. There must be validation of incoming requests to ensure they are legitimately from Stripe.",
           "severity": "medium",
-          "risk_category": "third-party dependency",
-          "affected_component": "webhook endpoint",
-          "recommendation": "Implement validation of webhook signatures to ensure requests are genuinely from Stripe."
+          "risk_category": "new attack surface",
+          "affected_component": "Webhook endpoint",
+          "recommendation": "Implement authentication and validation for webhook requests."
         },
         {
-          "title": "Logging Sensitive Information",
-          "description": "Logging full request/response bodies, which may include sensitive customer data or payment information, poses a risk if these logs are not handled correctly. Even if logging is turned off in production, care must be taken in development environments.",
+          "title": "Logging of Sensitive Information",
+          "description": "Full request/response bodies are logged for debugging, including sensitive information. This could lead to exposure of sensitive data if logs are not properly secured or scrubbed before production.",
           "severity": "medium",
           "risk_category": "data exposure",
-          "affected_component": "logging mechanism",
-          "recommendation": "Restrict logging to essential information only and ensure sensitive data is redacted."
+          "affected_component": "Logging system",
+          "recommendation": "Remove sensitive information from logs or ensure that logging is disabled in production environments."
         },
         {
-          "title": "API Key Management",
-          "description": "Storing API keys for Stripe and SendGrid in environment variables, while a common practice, can pose a risk if those environment variables are not properly secured.",
+          "title": "Email Receipt Security",
+          "description": "Email receipts contain customer billing information, which could be intercepted in transit if not properly secured. Sending sensitive data via email poses a risk of exposure.",
           "severity": "medium",
-          "risk_category": "third-party dependency",
-          "affected_component": "API key handling",
-          "recommendation": "Ensure API keys are managed securely, possibly leveraging secrets management tools."
+          "risk_category": "data exposure",
+          "affected_component": "Email receipt functionality",
+          "recommendation": "Consider using encryption for email communications or limit the data included in email receipts."
         }
       ],
       "overall_risk_level": "high",
       "requires_review": true
     },
     "privacy_analysis": {
-      "summary": "The payment processing feature introduces multiple privacy risks by collecting and storing sensitive personal data, sharing it with third parties, and handling it without necessary encryption.",
-      "findings": [
+      "summary": "The payment processing integration introduces several privacy risks due to the collection and storage of personal data, lack of encryption at rest, and potential exposure through logs.",
+      "concerns": [
         {
-          "title": "Collection and Storage of Personal Data",
-          "description": "The feature collects and stores sensitive personal data including names, emails, and partial card numbers in the 'billing_profiles' database, which poses a risk of data exposure.",
+          "title": "Sensitive Personal Data Collection",
+          "description": "Storing customer billing data, including names, emails, billing addresses, and partial card numbers in the database can lead to privacy concerns if not managed properly.",
+          "severity": "high",
+          "data_category": "PII",
+          "regulation": "PCI DSS, GDPR",
+          "privacy_principle": "data minimization",
+          "recommendation": "Review how billing data is stored and implement stronger data minimization practices."
+        },
+        {
+          "title": "Lack of Encryption at Rest",
+          "description": "The billing_profiles table is currently not encrypted, posing a risk of unauthorized access to sensitive customer information.",
           "severity": "critical",
           "data_category": "PII",
-          "regulation": "GDPR, CCPA",
-          "privacy_principle": "data minimization",
-          "recommendation": "Implement strong encryption for the 'billing_profiles' table and ensure minimal data retention."
-        },
-        {
-          "title": "Data Sharing with Third Parties",
-          "description": "Integration with Stripe involves sharing customer payment data with a third party, which raises concerns about data processing agreements and how the third party uses this data.",
-          "severity": "high",
-          "data_category": "PII",
-          "regulation": "GDPR, CCPA",
-          "privacy_principle": "consent",
-          "recommendation": "Review the data processing agreement with Stripe and ensure clarity on data handling practices."
-        },
-        {
-          "title": "Webhook Endpoint Data Exposure",
-          "description": "The /api/webhooks/stripe endpoint processes sensitive payment event data which may expose personal information if not secured properly.",
-          "severity": "high",
-          "data_category": "PII",
-          "regulation": "GDPR, CCPA",
+          "regulation": "PCI DSS, GDPR",
           "privacy_principle": "security safeguards",
-          "recommendation": "Secure the webhook endpoint with proper authentication and ensure data is logged securely."
+          "recommendation": "Implement encryption at rest for all sensitive customer data."
         },
         {
-          "title": "Lack of Encryption for Stored Data",
-          "description": "No encryption at rest for the 'billing_profiles' table increases the risk of unauthorized access and data breaches.",
-          "severity": "critical",
-          "data_category": "PII",
-          "regulation": "GDPR, CCPA",
-          "privacy_principle": "security safeguards",
-          "recommendation": "Implement data encryption for all personal data stored in the database."
-        },
-        {
-          "title": "Possible Data Exposure through Logging",
-          "description": "Full request/response bodies are logged for debugging purposes, which could lead to inadvertent exposure of sensitive personal information.",
+          "title": "Full Request Logs with Sensitive Data",
+          "description": "The logging of full request and response bodies may inadvertently expose sensitive customer data, even if logging is turned off in production.",
           "severity": "high",
           "data_category": "PII",
-          "regulation": "GDPR, CCPA",
+          "regulation": "GDPR",
           "privacy_principle": "data minimization",
-          "recommendation": "Ensure that sensitive information is not included in logs and disable full request logging in production."
+          "recommendation": "Ensure that sensitive data is never logged and consider obfuscating or redacting it in debug logs."
+        },
+        {
+          "title": "Email Receipts with Personal Data",
+          "description": "Email receipts sent via SendGrid contain personal data, including billing addresses, which could be intercepted without proper security measures.",
+          "severity": "medium",
+          "data_category": "PII",
+          "regulation": "GDPR",
+          "privacy_principle": "security safeguards",
+          "recommendation": "Review email content for data minimization and enhance security measures for email transmission."
         }
       ],
       "overall_risk_level": "critical",
       "requires_review": true,
-      "data_flow_concerns": "The feature processes and stores personal data including names, emails, and credit card information, shares data with Stripe for payment processing, and sends email receipts via SendGrid."
+      "data_flow_concerns": "The integration with third-party services (Stripe and SendGrid) involves sharing personal data and handling sensitive transaction data. There is a significant flow of personal data through the payment processing module, including storage of sensitive customer information."
     },
     "grc_analysis": {
-      "summary": "The proposed payment processing feature introduces significant compliance obligations related to PCI-DSS due to the handling of credit card data.",
-      "findings": [
+      "summary": "The new payment processing integration with Stripe creates significant compliance obligations related to payment card data handling and data protection.",
+      "concerns": [
         {
-          "title": "Handling of Payment Card Data",
-          "description": "The integration with Stripe involves the acceptance of credit card payments and the storage of tokenized card references, which creates PCI-DSS obligations due to the potential exposure of sensitive payment information.",
+          "title": "PCI-DSS Compliance",
+          "description": "The integration handles credit card transactions and stores tokenized card references, necessitating adherence to PCI-DSS standards to protect cardholder data.",
           "severity": "critical",
           "framework": "PCI-DSS",
           "risk_type": "regulatory",
-          "recommendation": "The GRC team should evaluate the PCI-DSS compliance requirements related to storing and processing credit card data."
+          "recommendation": "Conduct a thorough assessment of payment processing to ensure compliance with PCI-DSS requirements."
         },
         {
-          "title": "Presence of Billing Data",
-          "description": "Storing customer billing data (name, email, last four digits of the card, and billing address) can also contribute to PCI-DSS compliance requirements since this data can be considered sensitive information that must be protected.",
+          "title": "Data Security for Tokenized Card Data",
+          "description": "Storing tokenized card references and associated billing data in the database poses data security risks, especially with no encryption at rest, necessitating a review of data protection measures.",
           "severity": "high",
-          "framework": "PCI-DSS",
+          "framework": "General Data Protection Regulation (GDPR)",
           "risk_type": "regulatory",
-          "recommendation": "Assess the compliance measures in place for billing data storage and handling."
+          "recommendation": "Implement encryption at rest for sensitive billing data and assess overall data protection practices."
         },
         {
-          "title": "Lack of Encryption for Sensitive Data",
-          "description": "The absence of encryption at rest for the 'billing_profiles' table raises concerns regarding the security of stored customer billing information, which is subject to PCI-DSS requirements.",
+          "title": "Audit Trail for Payment Processing",
+          "description": "The process of logging full request/response bodies and subsequent deletion of this logging in production raises concerns for audit and compliance due to potential exposure of sensitive data.",
           "severity": "high",
-          "framework": "PCI-DSS",
-          "risk_type": "regulatory",
-          "recommendation": "The GRC team should review the security protocols for sensitive data storage, specifically focusing on encryption and access controls."
-        },
-        {
-          "title": "Logging Full Request/Response Bodies",
-          "description": "The inclusion of full request/response bodies in logs, even if they are turned off in production, can lead to exposure of sensitive information, raising compliance concerns under PCI-DSS.",
-          "severity": "medium",
-          "framework": "PCI-DSS",
+          "framework": "SOC 2",
           "risk_type": "audit",
-          "recommendation": "Review logging practices and ensure sensitive information is adequately protected in logs."
+          "recommendation": "Establish a clear logging policy that ensures sensitive data is not logged and implement auditing processes."
+        },
+        {
+          "title": "Vendor Management Risk Assessment",
+          "description": "Integrating with Stripe introduces third-party service dependency, requiring evaluation of Stripe's compliance and security posture to mitigate vendor-related risks.",
+          "severity": "medium",
+          "framework": "SOC 2",
+          "risk_type": "contractual",
+          "recommendation": "Perform a risk assessment of Stripe to validate their compliance with relevant standards."
         }
       ],
       "overall_risk_level": "critical",
       "requires_review": true,
-      "audit_considerations": "GRC team should ensure that the implementation adheres to PCI-DSS standards, including encryption of sensitive data, secure logging practices, and compliance with a risk management framework."
+      "audit_considerations": "Review the integration architecture for PCI-DSS compliance, evaluate current data security practices for sensitive information, and ensure robust logging policies to protect against data exposure."
     },
     "github_issues": [
       {
@@ -179,10 +170,10 @@
         "error": ""
       }
     ],
-    "total_findings": 13,
-    "critical_findings": 3,
+    "total_concerns": 12,
+    "critical_concerns": 2,
     "overall_recommendation": "NO-GO",
-    "executive_summary": "SecureFlow screening identified 13 concerns across 3 domain(s) (security, privacy, GRC). Recommendation: NO-GO. Critical concerns require immediate attention. Review issues have been prepared (dry run)."
+    "executive_summary": "SecureFlow screening identified 12 concerns across 3 domain(s) (security, privacy, GRC). Recommendation: NO-GO. Critical concerns require immediate attention. Review issues have been prepared (dry run)."
   },
   "eval_results": {
     "cases": [
@@ -216,7 +207,7 @@
             "value": true
           },
           {
-            "evaluator": "HasFindings",
+            "evaluator": "HasConcerns",
             "passed": true,
             "value": true
           },
@@ -242,7 +233,7 @@
         "name": "third_party_integration",
         "evaluator_results": [
           {
-            "evaluator": "HasFindings",
+            "evaluator": "HasConcerns",
             "passed": true,
             "value": true
           },
@@ -273,7 +264,7 @@
             "value": true
           },
           {
-            "evaluator": "HasFindings",
+            "evaluator": "HasConcerns",
             "passed": true,
             "value": true
           },
@@ -304,7 +295,7 @@
             "value": true
           },
           {
-            "evaluator": "HasFindings",
+            "evaluator": "HasConcerns",
             "passed": true,
             "value": true
           },
@@ -330,7 +321,7 @@
         "name": "vague_description",
         "evaluator_results": [
           {
-            "evaluator": "HasFindings",
+            "evaluator": "HasConcerns",
             "passed": true,
             "value": true
           },

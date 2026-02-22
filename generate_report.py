@@ -19,7 +19,7 @@ FIGURES_DIR = f"{PROJECT_DIR}/figures"
 OUTPUT_PRIMARY = f"{PROJECT_DIR}/module_summary.pdf"
 OUTPUT_COPY = f"{PROJECT_DIR}/Agentic_AI_Systems_Analysis_Report.pdf"
 
-TITLE = "SecureFlow: Product Security Review Agent"
+TITLE = "SecureFlow: Feature Risk Screening Agent"
 AUTHOR = "Tim Wilcoxson"
 DATE = "February 2026"
 COURSE = "Project 6 -- Agentic AI Systems"
@@ -142,7 +142,7 @@ def build_report():
     pdf.cell(CONTENT_W, 8, COURSE, align="C", new_x="LMARGIN", new_y="NEXT")
     pdf.ln(6)
     pdf.set_font("Helvetica", "I", 11)
-    pdf.cell(CONTENT_W, 8, "A Multi-Agent Product Security Triage System",
+    pdf.cell(CONTENT_W, 8, "A Multi-Agent Feature Risk Screening System",
              align="C", new_x="LMARGIN", new_y="NEXT")
 
     # ===================================================================
@@ -218,8 +218,9 @@ def build_report():
         "surface, data exposure, and authentication gaps; the privacy agent "
         "screens for new data classifications, personal data flows, and "
         "third-party data sharing; and the GRC agent screens for compliance "
-        "obligations such as PCI-DSS (PCI Security Standards Council, 2024) "
-        "or GDPR (European Parliament and Council, 2016). Running them in "
+        "obligations such as PCI-DSS (PCI Security Standards Council, 2024), "
+        "GDPR (European Parliament and Council, 2016), or CCPA (California "
+        "Legislature, 2018). Running them in "
         "parallel via asyncio.gather() provides latency benefits and mirrors "
         "how real product security organizations operate -- with specialized "
         "teams working concurrently."
@@ -329,8 +330,9 @@ def build_report():
         "for new data classifications, personal data flows, automated "
         "decision-making, and third-party data sharing. The GRC agent acts "
         "as a 'GRC Analyst' screening for regulatory obligations triggered "
-        "by payment card data (PCI-DSS), health data (HIPAA), or EU personal "
-        "data (GDPR). Each agent's instructions are loaded from a separate "
+        "by payment card data (PCI Security Standards Council, 2024), health "
+        "data (U.S. DHHS, 1996), or EU personal data (European Parliament "
+        "and Council, 2016). Each agent's instructions are loaded from a separate "
         "file in the instructions/ directory, enabling each team to own and "
         "version their screening criteria independently."
     )
@@ -367,13 +369,16 @@ def build_report():
 
     pdf.subsection("GitHub Issue Creator Tool")
     pdf.body_text(
-        "The primary tool is the GitHub issue creator, which uses the gh "
-        "CLI via asyncio.create_subprocess with argument lists to create "
-        "issues. This approach avoids shell injection by passing arguments "
-        "as a list rather than a shell string. Each issue includes a rich "
-        "Markdown body with a table of identified risk signals, labels, and a link "
-        "back to the source feature request. Team routing is achieved via "
-        "labels: security-review, privacy-review, and grc-review."
+        "Tool use is a defining capability of agentic systems, enabling "
+        "LLMs to interact with external services beyond text generation "
+        "(Schick et al., 2024). SecureFlow's primary tool is the GitHub "
+        "issue creator, which uses the gh CLI via asyncio.create_subprocess "
+        "with argument lists to create issues. This approach avoids shell "
+        "injection by passing arguments as a list rather than a shell string. "
+        "Each issue includes a rich Markdown body with a table of identified "
+        "risk signals, labels, and a link back to the source feature request. "
+        "Team routing is achieved via labels: security-review, privacy-review, "
+        "and grc-review."
     )
 
     pdf.subsection("GitHub Issue Reader Tool")
@@ -422,7 +427,7 @@ def build_report():
 
     pdf.subsection("Evaluation Framework")
     pdf.body_text(
-        "Five custom evaluators were implemented: HasFindings (were risks "
+        "Five custom evaluators were implemented: HasConcerns (were risks "
         "identified?), SeverityCheck (was appropriate severity assigned?), "
         "RequiresReviewCheck (were the correct teams flagged?), "
         "RecommendationCheck (was the feature correctly classified as "
@@ -452,7 +457,7 @@ def build_report():
     )
 
     pdf.add_figure(
-        f"{FIGURES_DIR}/fig3_finding_severity_distribution.png",
+        f"{FIGURES_DIR}/fig3_concern_severity_distribution.png",
         "Figure 3. Severity distribution of risk signals across security, privacy, "
         "and GRC domains for the demo payment processing feature.",
         width=CONTENT_W - 20,
@@ -509,7 +514,7 @@ def build_report():
         "designed as a screening tool, not a security audit replacement. "
         "The system's output is framed as a starting point for manual "
         "review, and every created issue includes a disclaimer: 'Please "
-        "conduct a full manual review based on these triage results.'"
+        "conduct a full review of the concerns identified above.'"
     )
 
     pdf.subsection("False Negatives")
@@ -683,14 +688,6 @@ def build_report():
             "Pydantic with LLMs. Pydantic. https://ai.pydantic.dev/"
         ),
         (
-            "OWASP Foundation. (2021). OWASP Top 10:2021. "
-            "https://owasp.org/Top10/"
-        ),
-        (
-            "Shostack, A. (2014). Threat Modeling: Designing for Security. "
-            "John Wiley & Sons."
-        ),
-        (
             "Wang, L., Ma, C., Feng, X., Zhang, Z., Yang, H., Zhang, J., "
             "Chen, Z., Tang, J., Chen, X., Lin, Y., Zhao, W. X., Wei, Z., "
             "& Wen, J. (2024). A Survey on Large Language Model based "
@@ -715,6 +712,24 @@ def build_report():
         (
             "PCI Security Standards Council. (2024). PCI DSS v4.0.1. "
             "https://www.pcisecuritystandards.org/"
+        ),
+        (
+            "U.S. Department of Health and Human Services. (1996). Health "
+            "Insurance Portability and Accountability Act (HIPAA). "
+            "https://www.hhs.gov/hipaa/"
+        ),
+        (
+            "California Legislature. (2018). California Consumer Privacy "
+            "Act (CCPA). Cal. Civ. Code 1798.100-1798.199.100. "
+            "https://oag.ca.gov/privacy/ccpa"
+        ),
+        (
+            "Schick, T., Dwivedi-Yu, J., Dessi, R., Raileanu, R., "
+            "Lomeli, M., Hambro, E., Zettlemoyer, L., Cancedda, N., "
+            "& Scialom, T. (2024). Toolformer: Language Models Can Teach "
+            "Themselves to Use Tools. Advances in Neural Information "
+            "Processing Systems, 36. "
+            "https://doi.org/10.48550/arXiv.2302.04761"
         ),
     ]
 
