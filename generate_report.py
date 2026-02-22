@@ -227,14 +227,17 @@ def build_report():
     pdf.body_text(
         "A single agent could technically perform all three screenings, but "
         "the multi-agent design was chosen for an organizational reason: "
-        "each team (security, privacy, GRC) can own and maintain their own "
-        "screening instructions independently. When the privacy team updates "
-        "their data classification criteria or the GRC team adds a new "
-        "compliance framework, they modify their own agent instructions "
-        "without touching the other teams' logic. This separation of "
-        "concerns mirrors how real organizations operate and is consistent "
-        "with the multi-agent collaboration pattern described in the LLM "
-        "agent literature (Wang et al., 2024)."
+        "each team (security, privacy, GRC) owns their screening criteria "
+        "in a separate instruction file (instructions/security.md, "
+        "instructions/privacy.md, instructions/grc.md). The system loads "
+        "these files at startup, so teams can update what counts as 'risky' "
+        "in their domain without touching the main system code or each "
+        "other's logic. In practice, each team could maintain their "
+        "instruction file in their own repository, pulled in via submodule "
+        "or CI artifact. This separation of concerns mirrors how real "
+        "organizations operate and is consistent with the multi-agent "
+        "collaboration pattern described in the LLM agent literature "
+        "(Wang et al., 2024)."
     )
 
     pdf.subsection("Stakeholders")
@@ -275,16 +278,15 @@ def build_report():
     pdf.body_text(
         "Each agent follows the Pydantic AI pattern: "
         "Agent(instructions=PROMPT, output_type=PydanticModel). The agent's "
-        "instructions define its screening criteria, the types of risk "
-        "signals to look for, and explicit guidance on what is NOT risky. "
-        "The output_type enforces structured output via Pydantic models, "
+        "instructions are loaded from external files (instructions/security.md, "
+        "privacy.md, grc.md) at startup, enabling each team to own their "
+        "screening criteria as a discrete, versioned artifact. The "
+        "output_type enforces structured output via Pydantic models, "
         "ensuring every identified risk includes severity, category, and "
         "recommendation fields. This design implements the 'profile-"
         "constrained agent' pattern identified by Xi et al. (2025), where "
         "the agent's persona, reasoning scope, and output format are "
-        "tightly defined. Crucially, each agent's instructions are "
-        "separately maintainable -- the owning team can update their "
-        "screening criteria without touching other agents' logic."
+        "tightly defined."
     )
 
     pdf.subsection("Orchestration Flow")
@@ -470,15 +472,16 @@ def build_report():
         "and specific to the described features."
     )
     pdf.body_text(
-        "One notable result was the low-risk internal tool case, which "
-        "passed its rule-based evaluators but failed the LLMJudge. The "
-        "agents flagged cautious informational-level concerns about SSO "
-        "dependency, leading the judge to rate the response as overly "
-        "cautious for a genuinely harmless feature. This is exactly the "
-        "kind of false positive the system should minimize -- it "
-        "demonstrates both LLM stochasticity and the value of combining "
-        "rule-based and LLM-judge evaluation to detect sensitivity "
-        "calibration issues."
+        "One notable result was the healthcare portal case, which "
+        "passed all other evaluators but failed the SeverityCheck. The "
+        "agents correctly identified the feature as risky and routed it "
+        "to all three teams, but rated it HIGH rather than the expected "
+        "CRITICAL severity. This illustrates LLM stochasticity in "
+        "severity calibration -- the screening correctly flagged the "
+        "feature for review, but the granularity of severity labels "
+        "varies across runs. This is acceptable for a triage system "
+        "where the key decision is whether to review, not the exact "
+        "severity level."
     )
 
     pdf.add_figure(

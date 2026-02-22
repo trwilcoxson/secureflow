@@ -24,6 +24,7 @@ import os
 import sys
 import time
 from dataclasses import dataclass
+from pathlib import Path
 from datetime import datetime, timezone
 from enum import Enum
 from typing import Any, List, Optional
@@ -171,130 +172,28 @@ class ReviewSummary(BaseModel):
 # SECTION 3: AGENT DEFINITIONS
 # =============================================================================
 
-SECURITY_INSTRUCTIONS = """
-<context>
-You are a product security analyst screening new feature descriptions for risk
-signals. Your role is to determine whether a proposed feature introduces security
-risk that warrants a full review by the product security team.
-</context>
+INSTRUCTIONS_DIR = Path(__file__).parent / "instructions"
 
-<role>
-Senior Product Security Engineer performing triage. You are screening feature
-documentation — not performing an exhaustive security audit. Your job is to decide
-whether the security team needs to look at this feature.
-</role>
 
-<input>
-You will receive a feature description for a proposed or in-development product feature.
-</input>
+def load_instructions(domain: str) -> str:
+    """Load screening instructions from the instructions/ directory.
 
-<instructions>
-Screen the feature description for security risk signals:
-1. Does the feature introduce new attack surface (new API endpoints, new user inputs,
-   new external-facing interfaces)?
-2. Does it handle sensitive data (credentials, tokens, PII, payment data)?
-3. Are there authentication or authorization gaps (missing MFA, weak session handling,
-   overly permissive access)?
-4. Does it introduce third-party dependencies or integrations that expand the trust
-   boundary?
-5. Could data be exposed through logging, debugging, error messages, or admin interfaces?
-6. Does it involve cryptographic operations or key management?
-7. Assign severity levels based on potential business impact.
-8. Set requires_review=True if any risk signal is medium severity or above.
-9. IMPORTANT: Do not flag harmless changes. A CSS color change, a dashboard layout
-   update, a text content change, or any feature with no backend, data, or API
-   implications should return zero risks and requires_review=False. Minimizing false
-   positives is critical — unnecessary reviews overwhelm the security team.
-</instructions>
+    Each team (security, privacy, GRC) maintains their own instruction file.
+    This allows teams to update their screening criteria independently
+    without modifying the main system code.
+    """
+    path = INSTRUCTIONS_DIR / f"{domain}.md"
+    if not path.exists():
+        raise FileNotFoundError(
+            f"Instructions file not found: {path}. "
+            f"Each team must provide an instructions/{domain}.md file."
+        )
+    return path.read_text()
 
-<output>
-Return a structured SecurityAnalysis. Each identified risk should have enough context
-for the security team to understand why this feature warrants their review.
-</output>
-"""
 
-PRIVACY_INSTRUCTIONS = """
-<context>
-You are a privacy analyst screening new feature descriptions for data handling risks.
-Your role is to determine whether a proposed feature introduces privacy risk that
-warrants review by the privacy team.
-</context>
-
-<role>
-Privacy Engineer performing triage. You are screening feature documentation — not
-conducting a full DPIA. Your job is to decide whether the privacy team needs to
-look at this feature.
-</role>
-
-<input>
-You will receive a feature description for a proposed or in-development product feature.
-</input>
-
-<instructions>
-Screen the feature description for privacy risk signals:
-1. Does the feature collect, store, or process personal data (names, emails, addresses,
-   phone numbers, financial data, health data)?
-2. Does it introduce a new data classification or a new data flow that did not
-   previously exist?
-3. Does it share data with third parties or external services?
-4. Does it involve automated decision-making about people (scoring, profiling,
-   eligibility determinations)?
-5. Could personal data be exposed through logs, emails, dashboards, or error messages?
-6. Does it involve tracking, behavioral analytics, or cross-device identification?
-7. Assign severity levels based on the sensitivity of the data involved.
-8. Set requires_review=True if the feature processes or shares personal data.
-9. IMPORTANT: Do not flag features that have no data collection or processing
-   component. A UI layout change, a static content update, or a feature that
-   only reads anonymized/aggregated data should return zero risks and
-   requires_review=False. Minimizing false positives is critical — unnecessary
-   reviews overwhelm the privacy team.
-</instructions>
-
-<output>
-Return a structured PrivacyAnalysis. Each identified risk should explain what data
-concern the privacy team should evaluate in their review.
-</output>
-"""
-
-GRC_INSTRUCTIONS = """
-<context>
-You are a Governance, Risk, and Compliance (GRC) analyst screening new feature
-descriptions for compliance and regulatory risk. Your role is to determine whether
-a proposed feature creates compliance obligations that warrant GRC team review.
-</context>
-
-<role>
-GRC Analyst performing triage. You are screening feature documentation — not
-conducting a full compliance audit. Your job is to decide whether the GRC team
-needs to evaluate this feature.
-</role>
-
-<input>
-You will receive a feature description for a proposed or in-development product feature.
-</input>
-
-<instructions>
-Screen the feature description for compliance and governance risk signals:
-1. Does the feature handle payment card data, creating PCI-DSS obligations?
-2. Does it handle health data, creating HIPAA obligations?
-3. Does it process EU personal data, creating GDPR obligations?
-4. Does it introduce a new vendor or third-party service that needs risk assessment?
-5. Does it require new audit trail or logging capabilities?
-6. Does it change how data is retained, archived, or deleted?
-7. Assign severity levels based on regulatory exposure and potential audit impact.
-8. Set requires_review=True if compliance obligations are identified.
-9. IMPORTANT: Do not flag features that have no compliance implications. A UI
-   change, a cosmetic update, or a feature that does not touch regulated data
-   or introduce new vendors should return zero risks and requires_review=False.
-   Minimizing false positives is critical — unnecessary reviews overwhelm the
-   GRC team.
-</instructions>
-
-<output>
-Return a structured GRCAnalysis. Each identified risk should explain what compliance
-concern the GRC team should evaluate in their review.
-</output>
-"""
+SECURITY_INSTRUCTIONS = load_instructions("security")
+PRIVACY_INSTRUCTIONS = load_instructions("privacy")
+GRC_INSTRUCTIONS = load_instructions("grc")
 
 # Agent instances
 security_agent = Agent(
@@ -1091,9 +990,9 @@ def generate_architecture_diagram() -> str:
     add_arrow(5.25, 5.5, 5.25, 4.4, "invoke")
 
     # Agents (3 in parallel)
-    add_box(0.3, 0.8, 2.8, 1.2, "Security Agent\n(STRIDE / OWASP)", "#fee2e2", 8)
-    add_box(4.0, 0.8, 2.5, 1.2, "Privacy Agent\n(GDPR / CCPA)", "#dcfce7", 8)
-    add_box(7.5, 0.8, 2.5, 1.2, "GRC Agent\n(SOC 2 / PCI)", "#fef9c3", 8)
+    add_box(0.3, 0.8, 2.8, 1.2, "Security Agent\n(Risk Screening)", "#fee2e2", 8)
+    add_box(4.0, 0.8, 2.5, 1.2, "Privacy Agent\n(Risk Screening)", "#dcfce7", 8)
+    add_box(7.5, 0.8, 2.5, 1.2, "GRC Agent\n(Risk Screening)", "#fef9c3", 8)
 
     add_arrow(4.5, 3.2, 1.7, 2.0, "parallel")
     add_arrow(5.25, 3.2, 5.25, 2.0, "parallel")
