@@ -98,8 +98,8 @@ class SecurityFinding(BaseModel):
 
 
 class SecurityAnalysis(BaseModel):
-    summary: str = Field(description="Executive summary of security findings")
-    findings: List[SecurityFinding] = Field(description="List of identified security findings")
+    summary: str = Field(description="Executive summary of security risk screening")
+    findings: List[SecurityFinding] = Field(description="List of identified areas of concern")
     overall_risk_level: Severity = Field(description="Overall security risk level")
     requires_review: bool = Field(description="Whether product security team review is warranted")
 
@@ -116,8 +116,8 @@ class PrivacyFinding(BaseModel):
 
 
 class PrivacyAnalysis(BaseModel):
-    summary: str = Field(description="Executive summary of privacy findings")
-    findings: List[PrivacyFinding] = Field(description="List of identified privacy findings")
+    summary: str = Field(description="Executive summary of privacy risk screening")
+    findings: List[PrivacyFinding] = Field(description="List of identified areas of concern")
     overall_risk_level: Severity = Field(description="Overall privacy risk level")
     requires_review: bool = Field(description="Whether privacy team review is warranted")
     data_flow_concerns: str = Field(description="Summary of data flow and handling concerns")
@@ -134,8 +134,8 @@ class GRCFinding(BaseModel):
 
 
 class GRCAnalysis(BaseModel):
-    summary: str = Field(description="Executive summary of GRC findings")
-    findings: List[GRCFinding] = Field(description="List of identified GRC findings")
+    summary: str = Field(description="Executive summary of GRC risk screening")
+    findings: List[GRCFinding] = Field(description="List of identified areas of concern")
     overall_risk_level: Severity = Field(description="Overall GRC risk level")
     requires_review: bool = Field(description="Whether GRC team review is warranted")
     audit_considerations: str = Field(description="Summary of audit or compliance considerations")
@@ -162,8 +162,8 @@ class ReviewSummary(BaseModel):
     privacy_analysis: PrivacyAnalysis = Field(description="Privacy analysis results")
     grc_analysis: GRCAnalysis = Field(description="GRC analysis results")
     github_issues: List[GitHubIssueResult] = Field(default_factory=list, description="Created GitHub issues")
-    total_findings: int = Field(default=0, description="Total number of findings across all domains")
-    critical_findings: int = Field(default=0, description="Number of critical-severity findings")
+    total_findings: int = Field(default=0, description="Total number of concerns across all domains")
+    critical_findings: int = Field(default=0, description="Number of critical-severity concerns")
     overall_recommendation: str = Field(default="", description="GO / CONDITIONAL / NO-GO recommendation")
     executive_summary: str = Field(default="", description="Executive summary of the entire review")
 
@@ -220,7 +220,7 @@ async def analyze_security(feature_desc: str) -> SecurityAnalysis:
     output = result.output
     duration = time.time() - start
     logger.info(
-        f"Security agent: {len(output.findings)} findings, "
+        f"Security agent: {len(output.findings)} concerns, "
         f"risk={output.overall_risk_level.value}, "
         f"review={'yes' if output.requires_review else 'no'}, "
         f"duration={duration:.1f}s"
@@ -236,7 +236,7 @@ async def analyze_privacy(feature_desc: str) -> PrivacyAnalysis:
     output = result.output
     duration = time.time() - start
     logger.info(
-        f"Privacy agent: {len(output.findings)} findings, "
+        f"Privacy agent: {len(output.findings)} concerns, "
         f"risk={output.overall_risk_level.value}, "
         f"review={'yes' if output.requires_review else 'no'}, "
         f"duration={duration:.1f}s"
@@ -252,7 +252,7 @@ async def analyze_grc(feature_desc: str) -> GRCAnalysis:
     output = result.output
     duration = time.time() - start
     logger.info(
-        f"GRC agent: {len(output.findings)} findings, "
+        f"GRC agent: {len(output.findings)} concerns, "
         f"risk={output.overall_risk_level.value}, "
         f"review={'yes' if output.requires_review else 'no'}, "
         f"duration={duration:.1f}s"
@@ -272,7 +272,7 @@ def format_issue_body(
 ) -> str:
     """Format a rich Markdown issue body for a triage review issue."""
     lines = []
-    lines.append(f"## SecureFlow Automated Triage: {category.value.upper()} Review")
+    lines.append(f"## SecureFlow Risk Screening: {category.value.upper()}")
     lines.append("")
 
     if source_issue:
@@ -289,10 +289,10 @@ def format_issue_body(
     lines.append("")
 
     if analysis.findings:
-        lines.append("### Findings")
+        lines.append("### Areas of Concern")
         lines.append("")
-        lines.append("| # | Severity | Title | Recommendation |")
-        lines.append("|---|----------|-------|----------------|")
+        lines.append("| # | Severity | Concern | Recommendation |")
+        lines.append("|---|----------|---------|----------------|")
         for i, f in enumerate(analysis.findings, 1):
             lines.append(f"| {i} | {f.severity.value.upper()} | {f.title} | {f.recommendation} |")
         lines.append("")
@@ -309,7 +309,7 @@ def format_issue_body(
 
     lines.append("---")
     lines.append("*This issue was created automatically by SecureFlow. "
-                 "Please conduct a full manual review based on these triage findings.*")
+                 "Please conduct a full review of the concerns identified above.*")
 
     return "\n".join(lines)
 
@@ -325,7 +325,7 @@ async def create_github_issue(
     severity_label = f"severity:{analysis.overall_risk_level.value}"
     team_label = f"{category.value}-review"
     labels = [team_label, severity_label, "automated-review"]
-    title = f"[{category.value.upper()} REVIEW] {feature_name} — {analysis.overall_risk_level.value.upper()} risk"
+    title = f"[{category.value.upper()} RISK] {feature_name} -- {analysis.overall_risk_level.value.upper()} risk"
     body = format_issue_body(category, analysis, feature_name, source_issue)
 
     if dry_run:
@@ -386,7 +386,7 @@ async def post_summary_comment(
     lines.append("## SecureFlow Triage Summary")
     lines.append("")
     lines.append(f"**Recommendation:** {review.overall_recommendation}")
-    lines.append(f"**Total Findings:** {review.total_findings} "
+    lines.append(f"**Total Concerns:** {review.total_findings} "
                  f"({review.critical_findings} critical)")
     lines.append("")
 
@@ -548,10 +548,10 @@ async def run_security_review(
 
     if domains_flagged:
         exec_summary = (
-            f"SecureFlow triage identified {total} findings across "
+            f"SecureFlow screening identified {total} concerns across "
             f"{len(domains_flagged)} domain(s) ({', '.join(domains_flagged)}). "
             f"Recommendation: {recommendation}. "
-            f"{'Critical issues require immediate attention. ' if critical > 0 else ''}"
+            f"{'Critical concerns require immediate attention. ' if critical > 0 else ''}"
             f"Review issues have been {'created' if not dry_run else 'prepared (dry run)'}."
         )
     else:
@@ -581,7 +581,7 @@ async def run_security_review(
     # Session memory
     review_history.append(review)
     logger.info(
-        f"Triage complete: {total} findings, {critical} critical, "
+        f"Triage complete: {total} concerns, {critical} critical, "
         f"recommendation={recommendation}"
     )
 
@@ -640,7 +640,7 @@ def print_review_summary(review: ReviewSummary) -> None:
     print("=" * 70)
     print(f"  Timestamp: {review.timestamp}")
     print(f"  Recommendation: {review.overall_recommendation}")
-    print(f"  Total Findings: {review.total_findings} ({review.critical_findings} critical)")
+    print(f"  Total Concerns: {review.total_findings} ({review.critical_findings} critical)")
     print("-" * 70)
 
     for domain, analysis in [
@@ -665,9 +665,9 @@ def print_review_summary(review: ReviewSummary) -> None:
     print("=" * 70 + "\n")
 
     # GitHub Actions annotations
-    actions_log("notice", f"SecureFlow: {review.overall_recommendation} — {review.total_findings} findings")
+    actions_log("notice", f"SecureFlow: {review.overall_recommendation} -- {review.total_findings} concerns")
     if review.critical_findings > 0:
-        actions_log("warning", f"SecureFlow: {review.critical_findings} CRITICAL findings detected")
+        actions_log("warning", f"SecureFlow: {review.critical_findings} CRITICAL concerns detected")
 
 
 # =============================================================================
@@ -680,7 +680,7 @@ from pydantic_evals.evaluators import Evaluator, EvaluatorContext, LLMJudge
 
 @dataclass
 class HasFindings(Evaluator):
-    """Check that the review has at least min_findings total findings."""
+    """Check that the screening identified at least min_findings concerns."""
     min_findings: int = 1
 
     async def evaluate(self, ctx: EvaluatorContext[str, ReviewSummary]) -> bool:
@@ -1107,8 +1107,8 @@ def generate_severity_distribution(review: ReviewSummary) -> str:
         bottom += vals
 
     ax.set_xlabel("Domain")
-    ax.set_ylabel("Number of Findings")
-    ax.set_title("Finding Severity Distribution by Domain", fontweight="bold")
+    ax.set_ylabel("Number of Concerns")
+    ax.set_title("Concern Severity Distribution by Domain", fontweight="bold")
     ax.set_xticks(x)
     ax.set_xticklabels(domains)
     ax.legend(loc="upper right")
@@ -1129,7 +1129,7 @@ def generate_sample_output(review: ReviewSummary) -> str:
     lines.append(f"SECUREFLOW TRIAGE REPORT")
     lines.append(f"Feature: {review.feature_name}")
     lines.append(f"Recommendation: {review.overall_recommendation}")
-    lines.append(f"Total: {review.total_findings} findings ({review.critical_findings} critical)")
+    lines.append(f"Total: {review.total_findings} concerns ({review.critical_findings} critical)")
     lines.append("")
 
     for domain, analysis in [
