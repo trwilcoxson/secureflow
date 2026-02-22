@@ -151,21 +151,23 @@ def build_report():
     pdf.add_page()
     pdf.section_heading(1, "Report Overview")
     pdf.body_text(
-        "This report presents SecureFlow, a multi-agent product security "
-        "review system that evaluates feature descriptions for security, "
-        "privacy, and governance/risk/compliance (GRC) risks. The system "
-        "is designed as a triage tool: it identifies high-level risks and "
-        "routes features to the appropriate review team (product security, "
-        "privacy, or GRC) via automatically created GitHub issues."
+        "This report presents SecureFlow, a multi-agent feature risk "
+        "screening system that evaluates product feature descriptions for "
+        "security, privacy, and governance/risk/compliance (GRC) risk signals. "
+        "The system screens feature documentation to determine whether a "
+        "proposed feature introduces risk that warrants review by the "
+        "appropriate team (product security, privacy, or GRC), then "
+        "automatically routes it via GitHub issues."
     )
     pdf.body_text(
-        "Agentic AI is appropriate for this use case because security triage "
-        "requires domain-specific reasoning across multiple disciplines, "
-        "structured decision-making (escalate or not), and external tool "
-        "interaction (GitHub issue creation). A traditional rule-based system "
-        "would lack the nuance to assess novel feature descriptions, while "
-        "a simple LLM call would lack the structured output guarantees and "
-        "tool orchestration needed for a production workflow."
+        "Agentic AI is appropriate for this use case because feature risk "
+        "screening requires domain-specific reasoning across multiple "
+        "disciplines, a structured decision about whether review is "
+        "warranted, and external tool interaction (GitHub issue creation). "
+        "A traditional rule-based system would lack the nuance to assess "
+        "novel feature descriptions, while a simple LLM call would lack "
+        "the structured output guarantees and tool orchestration needed "
+        "for a production workflow."
     )
     pdf.body_text(
         "The system is implemented using Pydantic AI (Colvin, 2024) for "
@@ -183,48 +185,56 @@ def build_report():
 
     pdf.subsection("The Problem")
     pdf.body_text(
-        "Product security teams at growing organizations face a triage "
-        "challenge: every new feature must be evaluated for security, privacy, "
-        "and compliance risks before launch, but manual review of every "
-        "feature request is slow and does not scale. Features range from "
-        "CSS color changes (no risk) to payment processing integrations "
-        "(critical risk), and the triage step -- determining which team "
-        "needs to review what -- is often a bottleneck."
+        "Product security teams at growing organizations face a screening "
+        "challenge: every new feature must be evaluated to determine whether "
+        "it introduces security, privacy, or compliance risk before launch, "
+        "but manual screening of every feature request is slow and does not "
+        "scale. Features range from CSS color changes (no risk) to payment "
+        "processing integrations (critical risk), and the screening step "
+        "-- determining which features are categorically risky and which "
+        "teams need to review them -- is often a bottleneck."
     )
 
     pdf.subsection("SecureFlow's Role")
     pdf.body_text(
-        "SecureFlow automates the triage step. When a developer creates a "
+        "SecureFlow automates the screening step. When a developer creates a "
         "feature request issue on GitHub and labels it 'feature-request', "
-        "SecureFlow automatically analyzes the description, identifies risks "
-        "across three domains (security, privacy, GRC), and creates targeted "
-        "review issues for the appropriate teams. It provides an overall "
-        "GO / CONDITIONAL / NO-GO recommendation and posts a summary comment "
-        "back on the original issue."
+        "SecureFlow automatically screens the description for risk signals "
+        "across three domains (security, privacy, GRC). If a feature is "
+        "categorically risky in any domain, SecureFlow creates a review "
+        "issue routed to the appropriate team. It provides an overall "
+        "recommendation (does this feature need review or not?) and posts "
+        "a summary comment back on the original issue. Critically, harmless "
+        "features -- like a CSS change or a dashboard layout update -- "
+        "should pass through without triggering any reviews, minimizing "
+        "false positives that would overwhelm triage teams."
     )
 
     pdf.subsection("Why Multi-Agent?")
     pdf.body_text(
         "A multi-agent design was chosen because security, privacy, and "
-        "GRC triage require distinct domain expertise. Each agent applies "
-        "a different analytical lens: the security agent uses STRIDE "
-        "(Shostack, 2014) and OWASP Top 10 (OWASP Foundation, 2021) "
-        "frameworks, the privacy agent assesses data handling against "
-        "GDPR (European Parliament and Council, 2016) and CCPA principles, "
-        "and the GRC agent maps to SOC 2 and "
-        "PCI-DSS (PCI Security Standards Council, 2024) controls. Running "
-        "them in parallel via asyncio.gather() "
-        "provides latency benefits and mirrors how real product security "
-        "organizations operate -- with specialized teams working concurrently."
+        "GRC screening require distinct domain expertise. Each agent applies "
+        "a different analytical lens: the security agent screens for attack "
+        "surface, data exposure, and authentication gaps; the privacy agent "
+        "screens for new data classifications, personal data flows, and "
+        "third-party data sharing; and the GRC agent screens for compliance "
+        "obligations such as PCI-DSS (PCI Security Standards Council, 2024) "
+        "or GDPR (European Parliament and Council, 2016). Running them in "
+        "parallel via asyncio.gather() provides latency benefits and mirrors "
+        "how real product security organizations operate -- with specialized "
+        "teams working concurrently."
     )
     pdf.body_text(
-        "A single-agent design was considered but rejected: combining STRIDE "
-        "analysis, GDPR assessment, and SOC 2 control mapping into a single "
-        "prompt would dilute domain-specific precision and produce an "
-        "unwieldy output schema. The multi-agent pattern -- where specialized "
-        "agents collaborate on a shared task -- is well-established in the "
-        "LLM agent literature (Wang et al., 2024) and enables independent "
-        "evaluation and improvement of each domain's analysis quality."
+        "A single agent could technically perform all three screenings, but "
+        "the multi-agent design was chosen for an organizational reason: "
+        "each team (security, privacy, GRC) can own and maintain their own "
+        "screening instructions independently. When the privacy team updates "
+        "their data classification criteria or the GRC team adds a new "
+        "compliance framework, they modify their own agent instructions "
+        "without touching the other teams' logic. This separation of "
+        "concerns mirrors how real organizations operate and is consistent "
+        "with the multi-agent collaboration pattern described in the LLM "
+        "agent literature (Wang et al., 2024)."
     )
 
     pdf.subsection("Stakeholders")
@@ -265,15 +275,16 @@ def build_report():
     pdf.body_text(
         "Each agent follows the Pydantic AI pattern: "
         "Agent(instructions=PROMPT, output_type=PydanticModel). The agent's "
-        "instructions define its role, analytical framework, and output "
-        "expectations using structured XML-style prompts. The output_type "
-        "enforces structured output via Pydantic models, ensuring every "
-        "finding includes severity, category, and recommendation fields. "
-        "This design implements the 'profile-constrained agent' pattern "
-        "identified by Xi et al. (2025), where the agent's persona, "
-        "reasoning scope, and output format are tightly defined to ensure "
-        "predictable behavior. This pattern was learned in Course 3 "
-        "(Multimodal AI) and adapted for security triage."
+        "instructions define its screening criteria, the types of risk "
+        "signals to look for, and explicit guidance on what is NOT risky. "
+        "The output_type enforces structured output via Pydantic models, "
+        "ensuring every identified risk includes severity, category, and "
+        "recommendation fields. This design implements the 'profile-"
+        "constrained agent' pattern identified by Xi et al. (2025), where "
+        "the agent's persona, reasoning scope, and output format are "
+        "tightly defined. Crucially, each agent's instructions are "
+        "separately maintainable -- the owning team can update their "
+        "screening criteria without touching other agents' logic."
     )
 
     pdf.subsection("Orchestration Flow")
@@ -309,33 +320,37 @@ def build_report():
     pdf.body_text(
         "Each agent has a distinct persona defined in its instruction prompt. "
         "The security agent acts as a 'Senior Product Security Engineer' "
-        "performing initial triage using STRIDE threat modeling (Shostack, "
-        "2014) and OWASP Top 10 mapping (OWASP Foundation, 2021). The "
-        "privacy agent acts as a 'Privacy Engineer' assessing data handling "
-        "against GDPR, CCPA, and privacy-by-design principles. The GRC agent "
-        "acts as a 'GRC Analyst' mapping features to SOC 2, PCI-DSS, and "
-        "ISO 27001 controls."
+        "screening for risk signals like new attack surface, sensitive data "
+        "handling, and authentication gaps (informed by threat modeling "
+        "principles such as STRIDE (Shostack, 2014) and the OWASP Top 10 "
+        "(OWASP Foundation, 2021)). The privacy agent acts as a 'Privacy "
+        "Engineer' screening for new data classifications, personal data "
+        "flows, and third-party data sharing. The GRC agent acts as a 'GRC "
+        "Analyst' screening for compliance obligations like PCI-DSS, HIPAA, "
+        "and GDPR."
     )
 
     pdf.subsection("Reasoning Framework")
     pdf.body_text(
-        "Each agent's instructions specify a structured analytical process: "
-        "identify relevant threats/risks, assign severity levels, determine "
-        "whether team review is warranted, and provide actionable "
-        "recommendations. The agents are explicitly scoped to triage-level "
-        "analysis -- enough detail for the receiving team to understand the "
-        "concern and begin their own deep review, not an exhaustive audit."
+        "Each agent's instructions specify concrete risk criteria: what "
+        "signals indicate this feature is categorically risky in their "
+        "domain? The agents assign severity levels and determine whether "
+        "the feature warrants review by their corresponding team. Equally "
+        "important, each agent is explicitly instructed to recognize "
+        "harmless changes (CSS updates, layout changes, text edits) and "
+        "return zero risks for them -- minimizing false positives that "
+        "would overwhelm triage teams."
     )
 
     pdf.subsection("Decision Logic")
     pdf.body_text(
         "The orchestrator applies deterministic decision logic to agent "
-        "outputs. A NO-GO recommendation is issued if any domain reports "
-        "critical or high overall risk. A CONDITIONAL recommendation is "
-        "issued if findings exist but no domain exceeds medium risk. A GO "
-        "recommendation is issued only when all three agents find no "
-        "significant risks. This escalation ladder ensures that high-risk "
-        "features cannot proceed without human review."
+        "outputs. A NO-GO recommendation means the feature is categorically "
+        "risky (critical or high risk in any domain) and must not proceed "
+        "without team review. CONDITIONAL means risk signals exist but are "
+        "moderate. GO means no agents identified risk signals -- the feature "
+        "can proceed without additional review. This decision directly "
+        "answers the core question: does this feature need review or not?"
     )
 
     # ===================================================================
@@ -390,22 +405,24 @@ def build_report():
     pdf.section_heading(6, "Evaluation of Agent Behavior")
 
     pdf.body_text(
-        "SecureFlow's behavior was evaluated using a suite of seven test "
-        "cases spanning the full risk spectrum, from cosmetic CSS changes "
-        "(no risk) to healthcare patient portals with PHI exposure "
-        "(critical risk). The evaluation framework uses pydantic-evals "
-        "with both rule-based and LLM-judge evaluators."
+        "SecureFlow's screening accuracy was evaluated using a suite of "
+        "seven test cases spanning the full risk spectrum, from cosmetic "
+        "CSS changes (should pass through with no reviews) to healthcare "
+        "patient portals with PHI exposure (should trigger all three "
+        "teams). The evaluators judge whether the system correctly "
+        "identifies categorically risky features while avoiding false "
+        "positives on harmless changes."
     )
 
     pdf.subsection("Evaluation Framework")
     pdf.body_text(
-        "Four custom evaluators were implemented: HasFindings (minimum "
-        "finding count), SeverityCheck (minimum severity threshold), "
-        "RequiresReviewCheck (team routing validation), and "
-        "RecommendationCheck (GO/CONDITIONAL/NO-GO). An LLMJudge evaluator "
-        "(using gpt-4o-mini as judge) assessed rationale quality for "
-        "complex cases. HasExecutiveSummary served as a global evaluator "
-        "across all cases."
+        "Five custom evaluators were implemented: HasFindings (were risks "
+        "identified?), SeverityCheck (was appropriate severity assigned?), "
+        "RequiresReviewCheck (were the correct teams flagged?), "
+        "RecommendationCheck (was the feature correctly classified as "
+        "needing or not needing review?), and HasExecutiveSummary (global). "
+        "An LLMJudge evaluator (using gpt-4o-mini as judge) assessed "
+        "whether the screening rationale was appropriate for the feature."
     )
 
     pdf.add_figure(
@@ -417,15 +434,15 @@ def build_report():
 
     pdf.subsection("Test Case Design")
     pdf.body_text(
-        "The seven test cases were designed to exercise different "
-        "aspects of the triage pipeline: (1) low-risk internal tool "
-        "(expected: GO, no reviews); (2) critical data exposure with "
-        "SSN/credit cards (expected: NO-GO, all teams); (3) third-party "
-        "SendGrid integration (expected: CONDITIONAL); (4) ML credit "
-        "scoring with bias risk (expected: NO-GO); (5) healthcare portal "
-        "with HIPAA violations (expected: NO-GO, all teams); (6) vague "
-        "feature description (expected: cautious findings); (7) cosmetic "
-        "CSS change (expected: GO, no reviews)."
+        "The seven test cases were designed to exercise the full spectrum "
+        "of feature risk: (1) low-risk internal tool -- should not trigger "
+        "reviews; (2) critical data exposure with SSN/credit cards -- should "
+        "trigger all three teams; (3) third-party SendGrid integration -- "
+        "moderate risk; (4) ML credit scoring with bias risk -- should "
+        "trigger privacy and GRC; (5) healthcare portal with PHI -- should "
+        "trigger all teams; (6) vague feature description -- should flag "
+        "uncertainty; (7) cosmetic CSS change -- must pass through with "
+        "zero reviews (false positive test)."
     )
 
     pdf.add_figure(
@@ -438,29 +455,30 @@ def build_report():
     pdf.subsection("Results and Observations")
     pdf.body_text(
         "The evaluation suite achieved a 96.4% pass rate (6 of 7 cases "
-        "passed all evaluators). The demo payment processing feature "
-        "produced 14 findings (4 security at HIGH, 5 privacy at HIGH, "
-        "5 GRC at CRITICAL), with the GRC agent flagging encryption of "
-        "billing data as a critical PCI-DSS violation -- demonstrating "
-        "the system's ability to surface specific compliance control gaps."
+        "passed all evaluators). The demo payment processing feature was "
+        "correctly identified as categorically risky, with 11 risk signals "
+        "across all three domains (4 security, 4 privacy, 3 GRC), routing "
+        "the feature to all three teams for review. The cosmetic CSS "
+        "change correctly passed through with zero reviews -- confirming "
+        "the system avoids false positives on harmless changes."
     )
     pdf.body_text(
-        "Critical scenarios (data exposure, healthcare portal) consistently "
-        "triggered NO-GO recommendations with all three teams flagged. "
-        "The cosmetic CSS change correctly received a GO recommendation "
-        "with no team reviews. The LLM judge confirmed that agent "
-        "rationales were relevant and specific to the described features."
+        "Critical scenarios (data exposure, healthcare portal) correctly "
+        "routed to all three teams. The low-risk and cosmetic cases "
+        "correctly identified those features as not needing review. "
+        "The LLM judge confirmed that screening rationales were relevant "
+        "and specific to the described features."
     )
     pdf.body_text(
         "One notable result was the low-risk internal tool case, which "
-        "passed its SeverityCheck and HasExecutiveSummary evaluators but "
-        "failed the LLMJudge. The LLM agents flagged cautious "
-        "informational-level concerns about SSO dependency and audit "
-        "logging requirements, leading the LLM judge to rate the response "
-        "as overly cautious for a genuinely low-risk feature. This "
-        "discrepancy highlights LLM stochasticity in triage and "
-        "demonstrates the value of combining rule-based and LLM-judge "
-        "evaluation approaches to detect sensitivity calibration issues."
+        "passed its rule-based evaluators but failed the LLMJudge. The "
+        "agents flagged cautious informational-level concerns about SSO "
+        "dependency, leading the judge to rate the response as overly "
+        "cautious for a genuinely harmless feature. This is exactly the "
+        "kind of false positive the system should minimize -- it "
+        "demonstrates both LLM stochasticity and the value of combining "
+        "rule-based and LLM-judge evaluation to detect sensitivity "
+        "calibration issues."
     )
 
     pdf.add_figure(
@@ -479,14 +497,14 @@ def build_report():
     pdf.subsection("Automation Bias")
     pdf.body_text(
         "The primary ethical concern with SecureFlow is automation bias: "
-        "the risk that security teams will over-rely on the automated "
-        "triage and skip their own critical analysis. If SecureFlow reports "
-        "GO for a feature that actually has hidden risks, teams might not "
-        "investigate further. This is why SecureFlow is explicitly designed "
-        "as a triage tool, not a security audit replacement. The system's "
-        "output is framed as a starting point for manual review, and every "
-        "created issue includes a disclaimer: 'Please conduct a full manual "
-        "review based on these triage findings.'"
+        "the risk that teams will over-rely on the automated screening "
+        "and skip their own critical analysis. If SecureFlow classifies "
+        "a feature as GO when it actually has hidden risks, teams might "
+        "not investigate further. This is why SecureFlow is explicitly "
+        "designed as a screening tool, not a security audit replacement. "
+        "The system's output is framed as a starting point for manual "
+        "review, and every created issue includes a disclaimer: 'Please "
+        "conduct a full manual review based on these triage findings.'"
     )
 
     pdf.subsection("False Negatives")

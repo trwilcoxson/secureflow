@@ -88,13 +88,12 @@ class RiskCategory(str, Enum):
 
 # --- Security ---
 class SecurityFinding(BaseModel):
-    title: str = Field(description="Short title of the security finding")
+    title: str = Field(description="Short title of the security risk")
     description: str = Field(description="Description of the security concern")
-    severity: Severity = Field(description="Severity level of the finding")
-    owasp_category: str = Field(description="Relevant OWASP Top 10 category (e.g., A01:2021-Broken Access Control)")
-    stride_category: str = Field(description="Relevant STRIDE threat category (e.g., Spoofing, Tampering)")
+    severity: Severity = Field(description="Severity level of the risk")
+    risk_category: str = Field(description="Category of risk (e.g., data exposure, authentication gap, injection surface, third-party dependency)")
     affected_component: str = Field(description="The component or feature area affected")
-    recommendation: str = Field(description="Concise triage-level recommendation for the security review team")
+    recommendation: str = Field(description="Concise recommendation for the security review team")
 
 
 class SecurityAnalysis(BaseModel):
@@ -106,13 +105,13 @@ class SecurityAnalysis(BaseModel):
 
 # --- Privacy ---
 class PrivacyFinding(BaseModel):
-    title: str = Field(description="Short title of the privacy finding")
+    title: str = Field(description="Short title of the privacy risk")
     description: str = Field(description="Description of the privacy concern")
-    severity: Severity = Field(description="Severity level of the finding")
-    data_category: str = Field(description="Category of data affected (e.g., PII, PHI, behavioral)")
-    regulation: str = Field(description="Relevant regulation (e.g., GDPR, CCPA, HIPAA)")
+    severity: Severity = Field(description="Severity level of the risk")
+    data_category: str = Field(description="Category of data affected (e.g., PII, PHI, behavioral, financial)")
+    regulation: str = Field(description="Relevant regulation if applicable (e.g., GDPR, CCPA, HIPAA)")
     privacy_principle: str = Field(description="Privacy principle at risk (e.g., data minimization, consent)")
-    recommendation: str = Field(description="Concise triage-level recommendation for the privacy team")
+    recommendation: str = Field(description="Concise recommendation for the privacy team")
 
 
 class PrivacyAnalysis(BaseModel):
@@ -125,13 +124,12 @@ class PrivacyAnalysis(BaseModel):
 
 # --- GRC ---
 class GRCFinding(BaseModel):
-    title: str = Field(description="Short title of the GRC finding")
+    title: str = Field(description="Short title of the GRC risk")
     description: str = Field(description="Description of the compliance or governance concern")
-    severity: Severity = Field(description="Severity level of the finding")
+    severity: Severity = Field(description="Severity level of the risk")
     framework: str = Field(description="Relevant compliance framework (e.g., SOC 2, PCI-DSS, HIPAA)")
-    control_id: str = Field(description="Relevant control identifier (e.g., CC6.1, PCI Req 3.4)")
     risk_type: str = Field(description="Type of risk (e.g., regulatory, audit, contractual)")
-    recommendation: str = Field(description="Concise triage-level recommendation for the GRC team")
+    recommendation: str = Field(description="Concise recommendation for the GRC team")
 
 
 class GRCAnalysis(BaseModel):
@@ -175,15 +173,15 @@ class ReviewSummary(BaseModel):
 
 SECURITY_INSTRUCTIONS = """
 <context>
-You are a product security analyst performing triage-level reviews of new feature
-descriptions. Your role is to identify high-level security risks using STRIDE and
-OWASP frameworks so the product security team can prioritize their manual review.
+You are a product security analyst screening new feature descriptions for risk
+signals. Your role is to determine whether a proposed feature introduces security
+risk that warrants a full review by the product security team.
 </context>
 
 <role>
-Senior Product Security Engineer performing initial triage. You are NOT performing
-an exhaustive security audit — you are identifying the top risks and recommending
-whether the product security team should conduct a full review.
+Senior Product Security Engineer performing triage. You are screening feature
+documentation — not performing an exhaustive security audit. Your job is to decide
+whether the security team needs to look at this feature.
 </role>
 
 <input>
@@ -191,36 +189,41 @@ You will receive a feature description for a proposed or in-development product 
 </input>
 
 <instructions>
-Analyze the feature description for security risks:
-1. Apply STRIDE threat modeling (Spoofing, Tampering, Repudiation, Information Disclosure,
-   Denial of Service, Elevation of Privilege) to identify potential threats.
-2. Map findings to OWASP Top 10 2021 categories where applicable.
-3. Focus on: authentication/authorization gaps, injection risks, data exposure,
-   cryptographic weaknesses, and third-party integration risks.
-4. Assign severity levels based on potential impact and exploitability.
-5. Set requires_review=True if any finding is medium severity or above.
-6. For low-risk features with no backend/data changes, it is acceptable to return
-   zero findings and requires_review=False.
+Screen the feature description for security risk signals:
+1. Does the feature introduce new attack surface (new API endpoints, new user inputs,
+   new external-facing interfaces)?
+2. Does it handle sensitive data (credentials, tokens, PII, payment data)?
+3. Are there authentication or authorization gaps (missing MFA, weak session handling,
+   overly permissive access)?
+4. Does it introduce third-party dependencies or integrations that expand the trust
+   boundary?
+5. Could data be exposed through logging, debugging, error messages, or admin interfaces?
+6. Does it involve cryptographic operations or key management?
+7. Assign severity levels based on potential business impact.
+8. Set requires_review=True if any risk signal is medium severity or above.
+9. IMPORTANT: Do not flag harmless changes. A CSS color change, a dashboard layout
+   update, a text content change, or any feature with no backend, data, or API
+   implications should return zero risks and requires_review=False. Minimizing false
+   positives is critical — unnecessary reviews overwhelm the security team.
 </instructions>
 
 <output>
-Return a structured SecurityAnalysis with concise, actionable findings. Each finding
-should have enough detail for the security team to understand the concern and begin
-their own deeper review.
+Return a structured SecurityAnalysis. Each identified risk should have enough context
+for the security team to understand why this feature warrants their review.
 </output>
 """
 
 PRIVACY_INSTRUCTIONS = """
 <context>
-You are a privacy analyst performing triage-level reviews of new feature descriptions.
-Your role is to flag data handling concerns and regulatory risks so the privacy team
-can prioritize their review.
+You are a privacy analyst screening new feature descriptions for data handling risks.
+Your role is to determine whether a proposed feature introduces privacy risk that
+warrants review by the privacy team.
 </context>
 
 <role>
-Privacy Engineer performing initial triage. You are NOT conducting a full DPIA —
-you are identifying data handling concerns and recommending whether the privacy team
-should conduct a detailed assessment.
+Privacy Engineer performing triage. You are screening feature documentation — not
+conducting a full DPIA. Your job is to decide whether the privacy team needs to
+look at this feature.
 </role>
 
 <input>
@@ -228,35 +231,42 @@ You will receive a feature description for a proposed or in-development product 
 </input>
 
 <instructions>
-Analyze the feature description for privacy risks:
-1. Identify what personal data is collected, processed, or stored.
-2. Flag data categories: PII, PHI, behavioral data, biometric data, financial data.
-3. Assess against privacy principles: data minimization, purpose limitation, consent,
-   transparency, data subject rights, storage limitation.
-4. Identify applicable regulations: GDPR, CCPA/CPRA, HIPAA, COPPA as relevant.
-5. Flag third-party data sharing, cross-border transfers, and automated decision-making.
-6. Set requires_review=True if personal data is processed or shared.
-7. For features with no data collection or processing, return zero findings and
-   requires_review=False.
+Screen the feature description for privacy risk signals:
+1. Does the feature collect, store, or process personal data (names, emails, addresses,
+   phone numbers, financial data, health data)?
+2. Does it introduce a new data classification or a new data flow that did not
+   previously exist?
+3. Does it share data with third parties or external services?
+4. Does it involve automated decision-making about people (scoring, profiling,
+   eligibility determinations)?
+5. Could personal data be exposed through logs, emails, dashboards, or error messages?
+6. Does it involve tracking, behavioral analytics, or cross-device identification?
+7. Assign severity levels based on the sensitivity of the data involved.
+8. Set requires_review=True if the feature processes or shares personal data.
+9. IMPORTANT: Do not flag features that have no data collection or processing
+   component. A UI layout change, a static content update, or a feature that
+   only reads anonymized/aggregated data should return zero risks and
+   requires_review=False. Minimizing false positives is critical — unnecessary
+   reviews overwhelm the privacy team.
 </instructions>
 
 <output>
-Return a structured PrivacyAnalysis with concise findings. Each finding should
-identify the data concern and relevant regulation for the privacy team.
+Return a structured PrivacyAnalysis. Each identified risk should explain what data
+concern the privacy team should evaluate in their review.
 </output>
 """
 
 GRC_INSTRUCTIONS = """
 <context>
-You are a Governance, Risk, and Compliance (GRC) analyst performing triage-level
-reviews of new feature descriptions. Your role is to flag compliance and audit risks
-so the GRC team can prioritize their assessment.
+You are a Governance, Risk, and Compliance (GRC) analyst screening new feature
+descriptions for compliance and regulatory risk. Your role is to determine whether
+a proposed feature creates compliance obligations that warrant GRC team review.
 </context>
 
 <role>
-GRC Analyst performing initial triage. You are NOT conducting a full compliance audit —
-you are identifying potential compliance gaps and recommending whether the GRC team
-should conduct a detailed review.
+GRC Analyst performing triage. You are screening feature documentation — not
+conducting a full compliance audit. Your job is to decide whether the GRC team
+needs to evaluate this feature.
 </role>
 
 <input>
@@ -264,21 +274,25 @@ You will receive a feature description for a proposed or in-development product 
 </input>
 
 <instructions>
-Analyze the feature description for GRC risks:
-1. Identify applicable compliance frameworks: SOC 2, PCI-DSS, HIPAA, ISO 27001,
-   GDPR (from a compliance/audit perspective), FedRAMP.
-2. Flag specific control requirements that may apply.
-3. Assess audit trail and logging requirements.
-4. Identify vendor/third-party risk management concerns.
-5. Flag change management and documentation requirements.
-6. Set requires_review=True if compliance obligations are identified.
-7. For features with no compliance implications, return zero findings and
-   requires_review=False.
+Screen the feature description for compliance and governance risk signals:
+1. Does the feature handle payment card data, creating PCI-DSS obligations?
+2. Does it handle health data, creating HIPAA obligations?
+3. Does it process EU personal data, creating GDPR obligations?
+4. Does it introduce a new vendor or third-party service that needs risk assessment?
+5. Does it require new audit trail or logging capabilities?
+6. Does it change how data is retained, archived, or deleted?
+7. Assign severity levels based on regulatory exposure and potential audit impact.
+8. Set requires_review=True if compliance obligations are identified.
+9. IMPORTANT: Do not flag features that have no compliance implications. A UI
+   change, a cosmetic update, or a feature that does not touch regulated data
+   or introduce new vendors should return zero risks and requires_review=False.
+   Minimizing false positives is critical — unnecessary reviews overwhelm the
+   GRC team.
 </instructions>
 
 <output>
-Return a structured GRCAnalysis with concise findings. Each finding should
-reference the specific framework and control for the GRC team.
+Return a structured GRCAnalysis. Each identified risk should explain what compliance
+concern the GRC team should evaluate in their review.
 </output>
 """
 
