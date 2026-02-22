@@ -45,7 +45,7 @@ The system is organized into four layers:
 A GitHub Action watches for the `feature-request` label on issues. When it fires, it calls `python agentic_system.py --issue-number N`, which reads the issue body via `gh issue view --json`.
 
 ### Layer 2: Orchestrator
-A **deterministic Python function** (not an LLM agent) that coordinates the pipeline. It validates input (20--10,000 chars), dispatches all three agents in parallel via `asyncio.gather()`, collects their structured outputs, creates GitHub issues for any domain that flagged risk, computes a GO/CONDITIONAL/NO-GO recommendation, and posts a summary comment on the source issue. All coordination logic is explicit code -- no LLM decides "what to do next."
+A **deterministic Python function** (not an LLM agent) that coordinates the pipeline. It validates input (20--10,000 chars), dispatches all three agents in parallel via `asyncio.gather()`, collects their structured outputs, and determines whether the feature needs team review. If any agent flags risk (`requires_review=True`), the orchestrator creates a review issue routed to that team. It posts a summary comment on the source issue with the overall result. All coordination logic is explicit code -- no LLM decides "what to do next."
 
 ### Layer 3: Specialist Agents
 Three Pydantic AI agents run in parallel, each screening for different risk categories:
