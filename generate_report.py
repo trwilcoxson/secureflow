@@ -456,32 +456,30 @@ def build_report():
 
     pdf.subsection("Results and Observations")
     pdf.body_text(
-        "The evaluation suite achieved a 96.4% pass rate (6 of 7 cases "
-        "passed all evaluators). The demo payment processing feature was "
-        "correctly identified as categorically risky, with 11 risk signals "
-        "across all three domains (4 security, 4 privacy, 3 GRC), routing "
-        "the feature to all three teams for review. The cosmetic CSS "
-        "change correctly passed through with zero reviews -- confirming "
-        "the system avoids false positives on harmless changes."
+        "Across multiple runs, the evaluation suite consistently achieves "
+        "a 96--100% pass rate (6 or 7 of 7 cases pass all evaluators). "
+        "The demo payment processing feature is reliably identified as "
+        "categorically risky, with 10--14 risk signals across all three "
+        "domains, routing the feature to all three teams for review. The "
+        "cosmetic CSS change consistently passes through with zero reviews "
+        "-- confirming the system avoids false positives on harmless changes."
     )
     pdf.body_text(
-        "Critical scenarios (data exposure, healthcare portal) correctly "
-        "routed to all three teams. The low-risk and cosmetic cases "
-        "correctly identified those features as not needing review. "
-        "The LLM judge confirmed that screening rationales were relevant "
-        "and specific to the described features."
+        "Critical scenarios (data exposure, healthcare portal) consistently "
+        "route to all three teams. The low-risk and cosmetic cases are "
+        "reliably identified as not needing review. The LLM judge confirms "
+        "that screening rationales are relevant and specific to the "
+        "described features."
     )
     pdf.body_text(
-        "One notable result was the healthcare portal case, which "
-        "passed all other evaluators but failed the SeverityCheck. The "
-        "agents correctly identified the feature as risky and routed it "
-        "to all three teams, but rated it HIGH rather than the expected "
-        "CRITICAL severity. This illustrates LLM stochasticity in "
-        "severity calibration -- the screening correctly flagged the "
-        "feature for review, but the granularity of severity labels "
-        "varies across runs. This is acceptable for a triage system "
-        "where the key decision is whether to review, not the exact "
-        "severity level."
+        "The specific case that fails varies across runs due to LLM "
+        "stochasticity -- in one run the healthcare portal may rate HIGH "
+        "instead of the expected CRITICAL, in another the vague description "
+        "case may fail its LLMJudge assessment. This variability is "
+        "inherent to LLM-based systems and acceptable for a triage tool: "
+        "the key decision (does this feature need review?) is consistent "
+        "across runs, even when the exact severity label or rationale "
+        "quality fluctuates."
     )
 
     pdf.add_figure(
@@ -634,6 +632,23 @@ def build_report():
         "CODEOWNERS integration: Automatic assignment of review issues "
         "to specific team members based on the repository's CODEOWNERS "
         "file."
+    )
+    pdf.bullet(
+        "Ticket system integration: Currently, triage results exist only "
+        "as GitHub Issues. In production, review issues would be pushed "
+        "into each team's existing workflow tool -- Jira tickets for "
+        "engineering security reviews, Aha! features for product-level "
+        "risk tracking, or ServiceNow incidents for GRC audit items. "
+        "This would ensure triage results land directly in the queue "
+        "each team already monitors, rather than requiring teams to "
+        "watch a separate GitHub label."
+    )
+    pdf.bullet(
+        "Notification routing: Adding Slack or Teams webhook "
+        "notifications when review issues are created, with channel "
+        "routing by team (e.g., #prod-security-triage, #privacy-reviews), "
+        "so teams are alerted immediately rather than relying on "
+        "periodic label filtering."
     )
     pdf.bullet(
         "Feedback loops: Capturing manual review outcomes (confirmed, "

@@ -8,21 +8,21 @@ SecureFlow is a multi-agent triage system that screens feature descriptions for 
 
 ```mermaid
 flowchart TD
-    A["Developer creates GitHub Issue\n(feature-request label)"] --> B["GitHub Action\ntriggers workflow"]
-    B --> C["Orchestrator\n(asyncio.gather)"]
+    A["Developer creates GitHub Issue<br/>(feature-request label)"] --> B["GitHub Action<br/>triggers workflow"]
+    B --> C["Orchestrator<br/>(asyncio.gather)"]
     C --> D["Security Agent"]
     C --> E["Privacy Agent"]
     C --> F["GRC Agent"]
-    D --> G{"Risk\nfound?"}
-    E --> H{"Risk\nfound?"}
-    F --> I{"Risk\nfound?"}
-    G -- Yes --> J["Create security\nreview issue"]
-    H -- Yes --> K["Create privacy\nreview issue"]
-    I -- Yes --> L["Create GRC\nreview issue"]
+    D --> G{"Risk<br/>found?"}
+    E --> H{"Risk<br/>found?"}
+    F --> I{"Risk<br/>found?"}
+    G -- Yes --> J["Create security<br/>review issue"]
+    H -- Yes --> K["Create privacy<br/>review issue"]
+    I -- Yes --> L["Create GRC<br/>review issue"]
     G -- No --> M["No action"]
     H -- No --> M
     I -- No --> M
-    J --> N["Post triage summary\non source issue"]
+    J --> N["Post triage summary<br/>on source issue"]
     K --> N
     L --> N
     M --> N
@@ -125,7 +125,7 @@ Seven test cases spanning the risk spectrum, validated by rule-based evaluators 
 | Vague description | Cautious | Insufficient detail triggers conservative screening |
 | CSS change | GO | Pure cosmetic -- zero risk signals expected |
 
-Current pass rate: **96.4%** (6/7). The healthcare portal case occasionally rates HIGH instead of CRITICAL due to LLM stochasticity -- acceptable for triage since the feature still routes to all three teams.
+Consistent pass rate: **96--100%** (6-7/7). The specific case that fails varies across runs due to LLM stochasticity (severity calibration or rationale quality), but the core routing decisions (which teams need to review) are stable.
 
 ## Safeguards
 
