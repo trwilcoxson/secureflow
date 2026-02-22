@@ -474,13 +474,17 @@ async def run_risk_screening(
 
     # Handle per-agent failures: if an agent raised an exception, substitute
     # a conservative fallback analysis that flags the domain for manual review.
+    def _safe_error_msg(err: Exception) -> str:
+        """Return a sanitized error type for user-facing content (no internal details)."""
+        return type(err).__name__
+
     def _fallback_security(err: Exception) -> SecurityAnalysis:
         logger.error(f"Security agent failed: {err}")
         return SecurityAnalysis(
-            summary=f"Security agent failed ({err}). Manual review required.",
+            summary=f"Security agent encountered an internal error ({_safe_error_msg(err)}). Manual review required.",
             concerns=[SecurityFinding(
                 title="Automated Screening Failure",
-                description=f"The security screening agent failed: {err}. A full manual security review is required.",
+                description="The security screening agent encountered an internal error. A full manual security review is required.",
                 severity=Severity.high,
                 risk_category="agent-failure",
                 affected_component="automated-screening",
@@ -492,10 +496,10 @@ async def run_risk_screening(
     def _fallback_privacy(err: Exception) -> PrivacyAnalysis:
         logger.error(f"Privacy agent failed: {err}")
         return PrivacyAnalysis(
-            summary=f"Privacy agent failed ({err}). Manual review required.",
+            summary=f"Privacy agent encountered an internal error ({_safe_error_msg(err)}). Manual review required.",
             concerns=[PrivacyFinding(
                 title="Automated Screening Failure",
-                description=f"The privacy screening agent failed: {err}. A full manual privacy review is required.",
+                description="The privacy screening agent encountered an internal error. A full manual privacy review is required.",
                 severity=Severity.high,
                 data_category="unknown",
                 regulation="N/A",
@@ -509,10 +513,10 @@ async def run_risk_screening(
     def _fallback_grc(err: Exception) -> GRCAnalysis:
         logger.error(f"GRC agent failed: {err}")
         return GRCAnalysis(
-            summary=f"GRC agent failed ({err}). Manual review required.",
+            summary=f"GRC agent encountered an internal error ({_safe_error_msg(err)}). Manual review required.",
             concerns=[GRCFinding(
                 title="Automated Screening Failure",
-                description=f"The GRC screening agent failed: {err}. A full manual compliance review is required.",
+                description="The GRC screening agent encountered an internal error. A full manual compliance review is required.",
                 severity=Severity.high,
                 framework="N/A",
                 risk_type="agent-failure",
@@ -699,7 +703,7 @@ def print_review_summary(review: ReviewSummary) -> None:
 # SECTION 8: EVALUATION SUITE
 # =============================================================================
 
-# Deferred import: pydantic_evals is only needed when running evaluation mode
+# Evaluation framework imports (used in Section 8 below)
 from pydantic_evals import Case, Dataset
 from pydantic_evals.evaluators import Evaluator, EvaluatorContext, LLMJudge
 
@@ -981,8 +985,6 @@ async def run_evaluation() -> dict:
 def generate_architecture_diagram() -> str:
     """Generate architecture diagram using matplotlib patches and arrows."""
     fig, ax = plt.subplots(1, 1, figsize=(14, 8))
-    ax.set_xlim(0, 14)
-    ax.set_ylim(0, 8)
     ax.axis("off")
     ax.set_xlim(-0.5, 11)
     ax.set_ylim(-1.0, 9.5)

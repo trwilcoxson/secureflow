@@ -350,14 +350,16 @@ def build_report():
 
     pdf.subsection("Decision Logic")
     pdf.body_text(
-        "The orchestrator applies deterministic decision logic to agent "
-        "outputs. The core question is binary: does this feature need "
-        "team review or not? If any agent sets requires_review=True, "
-        "the orchestrator creates a review issue for that team. The "
-        "overall recommendation summarizes this: if any domain flags "
-        "critical or high risk, the feature should not proceed without "
-        "review; if only moderate signals exist, the feature may proceed "
-        "with conditions; if no agents flag risk, the feature is clear."
+        "The decision chain has two layers. First, each agent decides "
+        "whether its domain requires review (requires_review=True/False) "
+        "-- this is an LLM judgment guided by the instruction file criteria. "
+        "Second, the orchestrator applies deterministic logic to the "
+        "structured agent outputs: if any agent flags requires_review=True, "
+        "the orchestrator creates a review issue for that team. The overall "
+        "recommendation is also deterministic: if any domain flags critical "
+        "or high risk, the recommendation is NO-GO; if concerns exist but "
+        "none are critical or high, the recommendation is CONDITIONAL; if "
+        "no concerns are raised at all, the recommendation is GO."
     )
 
     # ===================================================================
@@ -483,16 +485,14 @@ def build_report():
 
     pdf.subsection("Results and Observations")
     pdf.body_text(
-        "Across multiple development runs, the evaluation suite consistently "
-        "achieves a 96--100% pass rate (6 or 7 of 7 cases pass all "
-        "evaluators). The results shown in Figures 2--4 are from a "
-        "representative run that achieved 7/7 (100%) with 12 risk signals "
-        "for the demo payment feature. The demo payment processing feature "
-        "is reliably identified as categorically risky, with 10--14 risk "
-        "signals across all three domains, routing the feature to all three "
-        "teams for review. The cosmetic CSS change consistently passes "
-        "through with zero reviews -- confirming the system avoids false "
-        "positives on harmless changes."
+        "In our testing, the evaluation suite achieves a 96--100% pass rate "
+        "(6 or 7 of 7 cases pass all evaluators across runs). The results "
+        "shown in Figures 2--4 are from the run documented in results.json, "
+        "which achieved 7/7 (100%) with 12 risk signals for the demo "
+        "payment feature. Across runs, the demo feature reliably produces "
+        "10--14 risk signals, routing it to all three review teams. The "
+        "cosmetic CSS change consistently passes through with zero reviews "
+        "-- confirming the system avoids false positives on harmless changes."
     )
     pdf.body_text(
         "Critical scenarios (data exposure, healthcare portal) consistently "
@@ -588,9 +588,12 @@ def build_report():
         "when a missed risk leads to a security incident. SecureFlow "
         "addresses this by maintaining full audit trails: every triage "
         "run is logged with timestamps, agent outputs, and issue creation "
-        "results. The system is transparent about its limitations in every "
-        "output, and the overall architecture ensures that a human (the "
-        "review team) always makes the final security decision."
+        "results. When the system flags risk, a human review team always "
+        "makes the final decision. However, when all agents return GO "
+        "(no review needed), there is no human checkpoint -- the feature "
+        "proceeds without team notification. This makes GO decisions the "
+        "most consequential failure mode. Organizations should consider "
+        "periodic sampling of GO decisions to detect systematic blind spots."
     )
 
     # ===================================================================

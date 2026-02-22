@@ -85,7 +85,7 @@ async def main():
         await context.close()
         await browser.close()
 
-    print("Done! Video saved to ./evidence/")
+    print("Done! Video saved to ./demo/")
 
 
 if __name__ == "__main__":
