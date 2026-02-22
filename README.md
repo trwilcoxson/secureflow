@@ -86,6 +86,8 @@ The system loads these at startup via `load_instructions()`. Teams update what c
 
 ## Quick Start
 
+**Prerequisites:** Python 3.10+ (developed on 3.14, CI runs on 3.12). For live mode (`DRY_RUN=false`), the [GitHub CLI (`gh`)](https://cli.github.com/) must be installed and authenticated.
+
 ```bash
 # Clone and set up
 git clone https://github.com/trwilcoxson/secureflow.git

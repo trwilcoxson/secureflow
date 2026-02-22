@@ -33,8 +33,7 @@ from typing import Any, List, Optional
 import matplotlib
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt
-import matplotlib.patches as mpatches
-from matplotlib.patches import FancyBboxPatch, FancyArrowPatch
+from matplotlib.patches import FancyBboxPatch
 import numpy as np
 from dotenv import load_dotenv
 from pydantic import BaseModel, Field
@@ -479,14 +478,31 @@ async def run_risk_screening(
         logger.error(f"Security agent failed: {err}")
         return SecurityAnalysis(
             summary=f"Security agent failed ({err}). Manual review required.",
-            concerns=[], overall_risk_level=Severity.high, requires_review=True,
+            concerns=[SecurityFinding(
+                title="Automated Screening Failure",
+                description=f"The security screening agent failed: {err}. A full manual security review is required.",
+                severity=Severity.high,
+                risk_category="agent-failure",
+                affected_component="automated-screening",
+                recommendation="Conduct full manual security review of this feature.",
+            )],
+            overall_risk_level=Severity.high, requires_review=True,
         )
 
     def _fallback_privacy(err: Exception) -> PrivacyAnalysis:
         logger.error(f"Privacy agent failed: {err}")
         return PrivacyAnalysis(
             summary=f"Privacy agent failed ({err}). Manual review required.",
-            concerns=[], overall_risk_level=Severity.high, requires_review=True,
+            concerns=[PrivacyFinding(
+                title="Automated Screening Failure",
+                description=f"The privacy screening agent failed: {err}. A full manual privacy review is required.",
+                severity=Severity.high,
+                data_category="unknown",
+                regulation="N/A",
+                privacy_principle="due-diligence",
+                recommendation="Conduct full manual privacy review of this feature.",
+            )],
+            overall_risk_level=Severity.high, requires_review=True,
             data_flow_concerns="Unable to assess — agent failure.",
         )
 
@@ -494,7 +510,15 @@ async def run_risk_screening(
         logger.error(f"GRC agent failed: {err}")
         return GRCAnalysis(
             summary=f"GRC agent failed ({err}). Manual review required.",
-            concerns=[], overall_risk_level=Severity.high, requires_review=True,
+            concerns=[GRCFinding(
+                title="Automated Screening Failure",
+                description=f"The GRC screening agent failed: {err}. A full manual compliance review is required.",
+                severity=Severity.high,
+                framework="N/A",
+                risk_type="agent-failure",
+                recommendation="Conduct full manual GRC review of this feature.",
+            )],
+            overall_risk_level=Severity.high, requires_review=True,
             audit_considerations="Unable to assess — agent failure.",
         )
 
@@ -675,6 +699,7 @@ def print_review_summary(review: ReviewSummary) -> None:
 # SECTION 8: EVALUATION SUITE
 # =============================================================================
 
+# Deferred import: pydantic_evals is only needed when running evaluation mode
 from pydantic_evals import Case, Dataset
 from pydantic_evals.evaluators import Evaluator, EvaluatorContext, LLMJudge
 
