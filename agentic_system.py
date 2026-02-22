@@ -551,12 +551,47 @@ async def run_security_review(
 
     logger.info(f"Starting triage for: {feature_name}")
 
-    # Run all 3 agents in parallel
-    security_result, privacy_result, grc_result = await asyncio.gather(
+    # Run all 3 agents in parallel with error isolation
+    results = await asyncio.gather(
         analyze_security(feature_description),
         analyze_privacy(feature_description),
         analyze_grc(feature_description),
+        return_exceptions=True,
     )
+
+    # Handle per-agent failures: if an agent raised an exception, substitute
+    # a conservative fallback analysis that flags the domain for manual review.
+    def _fallback_security(err: Exception) -> SecurityAnalysis:
+        logger.error(f"Security agent failed: {err}")
+        return SecurityAnalysis(
+            summary=f"Security agent failed ({err}). Manual review required.",
+            findings=[], overall_risk_level=Severity.high, requires_review=True,
+        )
+
+    def _fallback_privacy(err: Exception) -> PrivacyAnalysis:
+        logger.error(f"Privacy agent failed: {err}")
+        return PrivacyAnalysis(
+            summary=f"Privacy agent failed ({err}). Manual review required.",
+            findings=[], overall_risk_level=Severity.high, requires_review=True,
+            data_flow_concerns="Unable to assess — agent failure.",
+        )
+
+    def _fallback_grc(err: Exception) -> GRCAnalysis:
+        logger.error(f"GRC agent failed: {err}")
+        return GRCAnalysis(
+            summary=f"GRC agent failed ({err}). Manual review required.",
+            findings=[], overall_risk_level=Severity.high, requires_review=True,
+            audit_considerations="Unable to assess — agent failure.",
+        )
+
+    fallbacks = [_fallback_security, _fallback_privacy, _fallback_grc]
+    resolved = []
+    for i, r in enumerate(results):
+        if isinstance(r, Exception):
+            resolved.append(fallbacks[i](r))
+        else:
+            resolved.append(r)
+    security_result, privacy_result, grc_result = resolved
 
     # Create issues for domains requiring review
     github_issues: List[GitHubIssueResult] = []

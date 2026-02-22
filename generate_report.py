@@ -215,6 +215,15 @@ def build_report():
         "provides latency benefits and mirrors how real product security "
         "organizations operate -- with specialized teams working concurrently."
     )
+    pdf.body_text(
+        "A single-agent design was considered but rejected: combining STRIDE "
+        "analysis, GDPR assessment, and SOC 2 control mapping into a single "
+        "prompt would dilute domain-specific precision and produce an "
+        "unwieldy output schema. The multi-agent pattern -- where specialized "
+        "agents collaborate on a shared task -- is well-established in the "
+        "LLM agent literature (Wang et al., 2024) and enables independent "
+        "evaluation and improvement of each domain's analysis quality."
+    )
 
     pdf.subsection("Stakeholders")
     pdf.body_text(
@@ -258,8 +267,11 @@ def build_report():
         "expectations using structured XML-style prompts. The output_type "
         "enforces structured output via Pydantic models, ensuring every "
         "finding includes severity, category, and recommendation fields. "
-        "This pattern was learned in Course 3 (Multimodal AI) and adapted "
-        "for security triage."
+        "This design implements the 'profile-constrained agent' pattern "
+        "identified by Xi et al. (2025), where the agent's persona, "
+        "reasoning scope, and output format are tightly defined to ensure "
+        "predictable behavior. This pattern was learned in Course 3 "
+        "(Multimodal AI) and adapted for security triage."
     )
 
     pdf.subsection("Orchestration Flow")
@@ -271,6 +283,18 @@ def build_report():
         "thresholds, creates GitHub issues for domains requiring review, "
         "and posts a summary comment on the source issue. This design keeps "
         "the coordination logic explicit and auditable."
+    )
+
+    pdf.subsection("Model Selection")
+    pdf.body_text(
+        "OpenAI gpt-4o-mini was selected as the LLM backend for its "
+        "balance of cost efficiency, low latency, and sufficient reasoning "
+        "capability for triage-level analysis. Triage does not require the "
+        "full capacity of larger models like gpt-4o; the task involves "
+        "structured risk identification against well-known frameworks, not "
+        "novel reasoning. The lower token cost of gpt-4o-mini enables "
+        "frequent automated runs on every feature request without budget "
+        "constraints, which is essential for a CI/CD-integrated tool."
     )
 
     # ===================================================================
@@ -411,14 +435,30 @@ def build_report():
 
     pdf.subsection("Results and Observations")
     pdf.body_text(
-        "The evaluation demonstrated that SecureFlow correctly identifies "
-        "high-risk features and routes them to appropriate teams. Critical "
-        "scenarios (data exposure, healthcare portal) consistently triggered "
-        "NO-GO recommendations with all three teams flagged. Low-risk "
-        "scenarios (CSS change, internal tool) correctly received GO "
-        "recommendations with no team reviews. The LLM judge confirmed "
-        "that agent rationales were relevant and specific to the described "
-        "features."
+        "The evaluation suite achieved a 96.4% pass rate (6 of 7 cases "
+        "passed all evaluators). The demo payment processing feature "
+        "produced 13 findings (3 security at HIGH, 5 privacy at HIGH, "
+        "5 GRC at CRITICAL), with the GRC agent flagging encryption of "
+        "billing data as a critical PCI-DSS violation -- demonstrating "
+        "the system's ability to surface specific compliance control gaps."
+    )
+    pdf.body_text(
+        "Critical scenarios (data exposure, healthcare portal) consistently "
+        "triggered NO-GO recommendations with all three teams flagged. "
+        "The cosmetic CSS change correctly received a GO recommendation "
+        "with no team reviews. The LLM judge confirmed that agent "
+        "rationales were relevant and specific to the described features."
+    )
+    pdf.body_text(
+        "One notable result was the low-risk internal tool case, which "
+        "passed its SeverityCheck and HasExecutiveSummary evaluators but "
+        "failed the LLMJudge. The LLM agents flagged cautious "
+        "informational-level concerns about SSO dependency and audit "
+        "logging requirements, leading the LLM judge to rate the response "
+        "as overly cautious for a genuinely low-risk feature. This "
+        "discrepancy highlights LLM stochasticity in triage and "
+        "demonstrates the value of combining rule-based and LLM-judge "
+        "evaluation approaches to detect sensitivity calibration issues."
     )
 
     pdf.add_figure(
