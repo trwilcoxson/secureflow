@@ -1,0 +1,34 @@
+name: SecureFlow Security Triage
+
+on:
+  issues:
+    types: [labeled]
+
+jobs:
+  triage:
+    # Only run when the 'feature-request' label is added
+    if: github.event.label.name == 'feature-request'
+    runs-on: ubuntu-latest
+    permissions:
+      issues: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Run SecureFlow triage
+        env:
+          # OPENAI_API_KEY stored as a GitHub repository secret
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          GITHUB_REPO: ${{ github.repository }}
+          # GH_TOKEN provided by GitHub Actions for issue creation
+          GH_TOKEN: ${{ github.token }}
+          DRY_RUN: 'false'
+          # Issue number passed via env var to avoid command injection
+          ISSUE_NUMBER: ${{ github.event.issue.number }}
+        run: python agentic_system.py --issue-number "$ISSUE_NUMBER"
