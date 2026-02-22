@@ -210,8 +210,10 @@ def build_report():
         "a different analytical lens: the security agent uses STRIDE "
         "(Shostack, 2014) and OWASP Top 10 (OWASP Foundation, 2021) "
         "frameworks, the privacy agent assesses data handling against "
-        "GDPR and CCPA principles, and the GRC agent maps to SOC 2 and "
-        "PCI-DSS controls. Running them in parallel via asyncio.gather() "
+        "GDPR (European Parliament and Council, 2016) and CCPA principles, "
+        "and the GRC agent maps to SOC 2 and "
+        "PCI-DSS (PCI Security Standards Council, 2024) controls. Running "
+        "them in parallel via asyncio.gather() "
         "provides latency benefits and mirrors how real product security "
         "organizations operate -- with specialized teams working concurrently."
     )
@@ -437,7 +439,7 @@ def build_report():
     pdf.body_text(
         "The evaluation suite achieved a 96.4% pass rate (6 of 7 cases "
         "passed all evaluators). The demo payment processing feature "
-        "produced 13 findings (3 security at HIGH, 5 privacy at HIGH, "
+        "produced 14 findings (4 security at HIGH, 5 privacy at HIGH, "
         "5 GRC at CRITICAL), with the GRC agent flagging encryption of "
         "billing data as a critical PCI-DSS violation -- demonstrating "
         "the system's ability to surface specific compliance control gaps."
