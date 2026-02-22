@@ -1,0 +1,100 @@
+triage	Set up job	﻿2026-02-22T08:35:06.8768410Z Current runner version: '2.331.0'
+triage	Set up job	2026-02-22T08:35:06.8791852Z ##[group]Runner Image Provisioner
+triage	Set up job	2026-02-22T08:35:06.8792795Z Hosted Compute Agent
+triage	Set up job	2026-02-22T08:35:06.8793378Z Version: 20260123.484
+triage	Set up job	2026-02-22T08:35:06.8793935Z Commit: 6bd6555ca37d84114959e1c76d2c01448ff61c5d
+triage	Set up job	2026-02-22T08:35:06.8794768Z Build Date: 2026-01-23T19:41:17Z
+triage	Set up job	2026-02-22T08:35:06.8795913Z Worker ID: {1725399f-4c8f-4de2-85b9-5b348808aff7}
+triage	Set up job	2026-02-22T08:35:06.8797219Z Azure Region: centralus
+triage	Set up job	2026-02-22T08:35:06.8798335Z ##[endgroup]
+triage	Set up job	2026-02-22T08:35:06.8800361Z ##[group]Operating System
+triage	Set up job	2026-02-22T08:35:06.8801848Z Ubuntu
+triage	Set up job	2026-02-22T08:35:06.8802827Z 24.04.3
+triage	Set up job	2026-02-22T08:35:06.8803641Z LTS
+triage	Set up job	2026-02-22T08:35:06.8804502Z ##[endgroup]
+triage	Set up job	2026-02-22T08:35:06.8805267Z ##[group]Runner Image
+triage	Set up job	2026-02-22T08:35:06.8806391Z Image: ubuntu-24.04
+triage	Set up job	2026-02-22T08:35:06.8807316Z Version: 20260201.15.1
+triage	Set up job	2026-02-22T08:35:06.8808983Z Included Software: https://github.com/actions/runner-images/blob/ubuntu24/20260201.15/images/ubuntu/Ubuntu2404-Readme.md
+triage	Set up job	2026-02-22T08:35:06.8812154Z Image Release: https://github.com/actions/runner-images/releases/tag/ubuntu24%2F20260201.15
+triage	Set up job	2026-02-22T08:35:06.8813935Z ##[endgroup]
+triage	Set up job	2026-02-22T08:35:06.8815716Z ##[group]GITHUB_TOKEN Permissions
+triage	Set up job	2026-02-22T08:35:06.8818469Z Issues: write
+triage	Set up job	2026-02-22T08:35:06.8819553Z Metadata: read
+triage	Set up job	2026-02-22T08:35:06.8820447Z ##[endgroup]
+triage	Set up job	2026-02-22T08:35:06.8823254Z Secret source: Actions
+triage	Set up job	2026-02-22T08:35:06.8824492Z Prepare workflow directory
+triage	Set up job	2026-02-22T08:35:06.9187625Z Prepare all required actions
+triage	Set up job	2026-02-22T08:35:06.9224921Z Getting action download info
+triage	Set up job	2026-02-22T08:35:07.2846758Z Download action repository 'actions/checkout@v4' (SHA:34e114876b0b11c390a56381ad16ebd13914f8d5)
+triage	Set up job	2026-02-22T08:35:07.3764140Z Download action repository 'actions/setup-python@v5' (SHA:a26af69be951a213d495a4c3e4e4022e16d87065)
+triage	Set up job	2026-02-22T08:35:07.5568478Z Complete job name: triage
+triage	Run actions/checkout@v4	﻿2026-02-22T08:35:07.6228914Z ##[group]Run actions/checkout@v4
+triage	Run actions/checkout@v4	2026-02-22T08:35:07.6229737Z with:
+triage	Run actions/checkout@v4	2026-02-22T08:35:07.6230143Z   repository: trwilcoxson/secureflow
+triage	Run actions/checkout@v4	2026-02-22T08:35:07.6230801Z   token: ***
+triage	Run actions/checkout@v4	2026-02-22T08:35:07.6231349Z   ssh-strict: true
+triage	Run actions/checkout@v4	2026-02-22T08:35:07.6231727Z   ssh-user: git
+triage	Run actions/checkout@v4	2026-02-22T08:35:07.6232119Z   persist-credentials: true
+triage	Run actions/checkout@v4	2026-02-22T08:35:07.6232564Z   clean: true
+triage	Run actions/checkout@v4	2026-02-22T08:35:07.6232953Z   sparse-checkout-cone-mode: true
+triage	Run actions/checkout@v4	2026-02-22T08:35:07.6233423Z   fetch-depth: 1
+triage	Run actions/checkout@v4	2026-02-22T08:35:07.6233790Z   fetch-tags: false
+triage	Run actions/checkout@v4	2026-02-22T08:35:07.6234179Z   show-progress: true
+triage	Run actions/checkout@v4	2026-02-22T08:35:07.6234577Z   lfs: false
+triage	Run actions/checkout@v4	2026-02-22T08:35:07.6234936Z   submodules: false
+triage	Run actions/checkout@v4	2026-02-22T08:35:07.6235337Z   set-safe-directory: true
+triage	Run actions/checkout@v4	2026-02-22T08:35:07.6236004Z ##[endgroup]
+triage	Run actions/checkout@v4	2026-02-22T08:35:07.7303397Z Syncing repository: trwilcoxson/secureflow
+triage	Run actions/checkout@v4	2026-02-22T08:35:07.7305123Z ##[group]Getting Git version info
+triage	Run actions/checkout@v4	2026-02-22T08:35:07.7305827Z Working directory is '/home/runner/work/secureflow/secureflow'
+triage	Run actions/checkout@v4	2026-02-22T08:35:07.7306948Z [command]/usr/bin/git version
+triage	Run actions/checkout@v4	2026-02-22T08:35:07.7378641Z git version 2.52.0
+triage	Run actions/checkout@v4	2026-02-22T08:35:07.7404099Z ##[endgroup]
+triage	Run actions/checkout@v4	2026-02-22T08:35:07.7417865Z Temporarily overriding HOME='/home/runner/work/_temp/b66d3bb8-0f5c-4e75-bb68-17eec400f4db' before making global git config changes
+triage	Run actions/checkout@v4	2026-02-22T08:35:07.7419219Z Adding repository directory to the temporary git global config as a safe directory
+triage	Run actions/checkout@v4	2026-02-22T08:35:07.7430028Z [command]/usr/bin/git config --global --add safe.directory /home/runner/work/secureflow/secureflow
+triage	Run actions/checkout@v4	2026-02-22T08:35:07.7466037Z Deleting the contents of '/home/runner/work/secureflow/secureflow'
+triage	Run actions/checkout@v4	2026-02-22T08:35:07.7469486Z ##[group]Initializing the repository
+triage	Run actions/checkout@v4	2026-02-22T08:35:07.7473589Z [command]/usr/bin/git init /home/runner/work/secureflow/secureflow
+triage	Run actions/checkout@v4	2026-02-22T08:35:07.7573536Z hint: Using 'master' as the name for the initial branch. This default branch name
+triage	Run actions/checkout@v4	2026-02-22T08:35:07.7575200Z hint: will change to "main" in Git 3.0. To configure the initial branch name
+triage	Run actions/checkout@v4	2026-02-22T08:35:07.7576738Z hint: to use in all of your new repositories, which will suppress this warning,
+triage	Run actions/checkout@v4	2026-02-22T08:35:07.7577926Z hint: call:
+triage	Run actions/checkout@v4	2026-02-22T08:35:07.7578754Z hint:
+triage	Run actions/checkout@v4	2026-02-22T08:35:07.7579524Z hint: 	git config --global init.defaultBranch <name>
+triage	Run actions/checkout@v4	2026-02-22T08:35:07.7580125Z hint:
+triage	Run actions/checkout@v4	2026-02-22T08:35:07.7580669Z hint: Names commonly chosen instead of 'master' are 'main', 'trunk' and
+triage	Run actions/checkout@v4	2026-02-22T08:35:07.7581979Z hint: 'development'. The just-created branch can be renamed via this command:
+triage	Run actions/checkout@v4	2026-02-22T08:35:07.7582673Z hint:
+triage	Run actions/checkout@v4	2026-02-22T08:35:07.7583041Z hint: 	git branch -m <name>
+triage	Run actions/checkout@v4	2026-02-22T08:35:07.7583615Z hint:
+triage	Run actions/checkout@v4	2026-02-22T08:35:07.7584521Z hint: Disable this message with "git config set advice.defaultBranchName false"
+triage	Run actions/checkout@v4	2026-02-22T08:35:07.7585505Z Initialized empty Git repository in /home/runner/work/secureflow/secureflow/.git/
+triage	Run actions/checkout@v4	2026-02-22T08:35:07.7589364Z [command]/usr/bin/git remote add origin https://github.com/trwilcoxson/secureflow
+triage	Run actions/checkout@v4	2026-02-22T08:35:07.7621071Z ##[endgroup]
+triage	Run actions/checkout@v4	2026-02-22T08:35:07.7621811Z ##[group]Disabling automatic garbage collection
+triage	Run actions/checkout@v4	2026-02-22T08:35:07.7625182Z [command]/usr/bin/git config --local gc.auto 0
+triage	Run actions/checkout@v4	2026-02-22T08:35:07.7652189Z ##[endgroup]
+triage	Run actions/checkout@v4	2026-02-22T08:35:07.7652849Z ##[group]Setting up auth
+triage	Run actions/checkout@v4	2026-02-22T08:35:07.7658577Z [command]/usr/bin/git config --local --name-only --get-regexp core\.sshCommand
+triage	Run actions/checkout@v4	2026-02-22T08:35:07.7687837Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'core\.sshCommand' && git config --local --unset-all 'core.sshCommand' || :"
+triage	Run actions/checkout@v4	2026-02-22T08:35:07.8018306Z [command]/usr/bin/git config --local --name-only --get-regexp http\.https\:\/\/github\.com\/\.extraheader
+triage	Run actions/checkout@v4	2026-02-22T08:35:07.8048141Z [command]/usr/bin/git submodule foreach --recursive sh -c "git config --local --name-only --get-regexp 'http\.https\:\/\/github\.com\/\.extraheader' && git config --local --unset-all 'http.https://github.com/.extraheader' || :"
+triage	Run actions/checkout@v4	2026-02-22T08:35:07.8263719Z [command]/usr/bin/git config --local --name-only --get-regexp ^includeIf\.gitdir:
+triage	Run actions/checkout@v4	2026-02-22T08:35:07.8300452Z [command]/usr/bin/git submodule foreach --recursive git config --local --show-origin --name-only --get-regexp remote.origin.url
+triage	Run actions/checkout@v4	2026-02-22T08:35:07.8521846Z [command]/usr/bin/git config --local http.https://github.com/.extraheader AUTHORIZATION: basic ***
+triage	Run actions/checkout@v4	2026-02-22T08:35:07.8556441Z ##[endgroup]
+triage	Run actions/checkout@v4	2026-02-22T08:35:07.8557648Z ##[group]Fetching the repository
+triage	Run actions/checkout@v4	2026-02-22T08:35:07.8565828Z [command]/usr/bin/git -c protocol.version=2 fetch --no-tags --prune --no-recurse-submodules --depth=1 origin +b4693cb806d93ee0927a31131bb6e3400c4ac2fd:refs/remotes/origin/main
+triage	Run actions/checkout@v4	2026-02-22T08:35:08.2454712Z From https://github.com/trwilcoxson/secureflow
+triage	Run actions/checkout@v4	2026-02-22T08:35:08.2456092Z  * [new ref]         b4693cb806d93ee0927a31131bb6e3400c4ac2fd -> origin/main
+triage	Run actions/checkout@v4	2026-02-22T08:35:08.2487946Z ##[endgroup]
+triage	Run actions/checkout@v4	2026-02-22T08:35:08.2489032Z ##[group]Determining the checkout info
+triage	Run actions/checkout@v4	2026-02-22T08:35:08.2490234Z ##[endgroup]
+triage	Run actions/checkout@v4	2026-02-22T08:35:08.2495324Z [command]/usr/bin/git sparse-checkout disable
+triage	Run actions/checkout@v4	2026-02-22T08:35:08.2537737Z [command]/usr/bin/git config --local --unset-all extensions.worktreeConfig
+triage	Run actions/checkout@v4	2026-02-22T08:35:08.2563214Z ##[group]Checking out the ref
+triage	Run actions/checkout@v4	2026-02-22T08:35:08.2566846Z [command]/usr/bin/git checkout --progress --force -B main refs/remotes/origin/main
+triage	Run actions/checkout@v4	2026-02-22T08:35:08.2671555Z Switched to a new branch 'main'
+triage	Run actions/checkout@v4	2026-02-22T08:35:08.2674901Z branch 'main' set up to track 'origin/main'.
