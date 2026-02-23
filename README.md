@@ -2,7 +2,11 @@
 
 **Automated feature risk screening for product security, privacy, and GRC teams.**
 
-SecureFlow is a multi-agent triage system that screens feature descriptions for risk signals and routes them to the appropriate review teams via GitHub Issues. It runs as a GitHub Action -- when a developer labels an issue `feature-request`, SecureFlow reads the description, runs three specialist screening agents in parallel, and creates targeted review issues for any team that needs to investigate.
+SecureFlow is a multi-agent triage system that screens feature descriptions for risk signals and routes them to the appropriate review teams via GitHub Issues. It runs as a GitHub Action — when a developer labels an issue `feature-request`, SecureFlow reads the description, runs three specialist screening agents in parallel, and creates targeted review issues for any team that needs to investigate.
+
+### Demo
+
+<video src="demo/secureflow_demo.webm" controls width="100%"></video>
 
 ## How It Works
 
@@ -45,7 +49,7 @@ The system is organized into four layers:
 A GitHub Action watches for the `feature-request` label on issues. When it fires, it calls `python agentic_system.py --issue-number N`, which reads the issue body via `gh issue view --json`.
 
 ### Layer 2: Orchestrator
-A **deterministic Python function** (not an LLM agent) that coordinates the pipeline. It validates input (20--10,000 chars), dispatches all three agents in parallel via `asyncio.gather()`, collects their structured outputs, and determines whether the feature needs team review. If any agent flags risk (`requires_review=True`), the orchestrator creates a review issue routed to that team. It posts a summary comment on the source issue with the overall result. All coordination logic is explicit code -- no LLM decides "what to do next."
+A **deterministic Python function** (not an LLM agent) that coordinates the pipeline. It validates input (20–10,000 chars), dispatches all three agents in parallel via `asyncio.gather()`, collects their structured outputs, and determines whether the feature needs team review. If any agent flags risk (`requires_review=True`), the orchestrator creates a review issue routed to that team. It posts a summary comment on the source issue with the overall result. All coordination logic is explicit code — no LLM decides "what to do next."
 
 ### Layer 3: Specialist Agents
 Three Pydantic AI agents run in parallel, each screening for different risk categories:
@@ -64,12 +68,12 @@ security_agent = Agent(
 )
 ```
 
-The LLM cannot return freeform text -- Pydantic AI forces the response into the schema (list of concerns, severity, requires_review flag). This is how the orchestrator can make deterministic routing decisions from LLM output.
+The LLM cannot return freeform text — Pydantic AI forces the response into the schema (list of concerns, severity, requires_review flag). This is how the orchestrator can make deterministic routing decisions from LLM output.
 
 ### Layer 4: Tools
 - **Issue creator**: `gh issue create` via `asyncio.create_subprocess_exec` (argument list, no shell injection). Creates labeled review issues routed to the right team.
 - **Issue reader**: `gh issue view --json` to extract feature descriptions from GitHub issues.
-- **Dry-run mode**: `DRY_RUN=true` by default -- logs what would be created without calling the GitHub API.
+- **Dry-run mode**: `DRY_RUN=true` by default — logs what would be created without calling the GitHub API.
 
 ## Team Ownership
 
@@ -82,7 +86,7 @@ instructions/
   grc.md        ← GRC team owns this
 ```
 
-The system loads these at startup via `load_instructions()`. Teams update what counts as "risky" in their domain by editing their file -- no changes to system code required. In production, each team could maintain their instruction file in their own repository, pulled in via submodule or CI artifact.
+The system loads these at startup via `load_instructions()`. Teams update what counts as "risky" in their domain by editing their file — no changes to system code required. In production, each team could maintain their instruction file in their own repository, pulled in via submodule or CI artifact.
 
 ## Quick Start
 
@@ -115,7 +119,7 @@ python generate_report.py
 
 ### GitHub Action (Production)
 
-The system runs automatically when the `feature-request` label is added to any issue. Add `OPENAI_API_KEY` as a repository secret -- no other configuration needed.
+The system runs automatically when the `feature-request` label is added to any issue. Add `OPENAI_API_KEY` as a repository secret — no other configuration needed.
 
 ```yaml
 # .github/workflows/security-triage.yml (already included)
@@ -141,24 +145,24 @@ jobs:
 
 Seven test cases spanning the risk spectrum, validated by rule-based evaluators and an LLM judge:
 
-| Case | Expected | Why |
-|------|----------|-----|
-| Low-risk internal tool | GO | SSO-protected, anonymized data -- no review needed |
-| Critical data exposure | NO-GO | Unauthenticated API serving SSNs and credit cards |
-| Third-party integration | CONDITIONAL | SendGrid with PII in debug logs |
-| ML credit scoring | NO-GO | Automated decisions on people, bias risk |
-| Healthcare portal | NO-GO | PHI sent to OpenAI, no MFA |
-| Vague description | Cautious | Insufficient detail triggers conservative screening |
-| CSS change | GO | Pure cosmetic -- zero risk signals expected |
+| Case | Expected | Signals the screener should detect |
+|------|----------|-------------------------------------|
+| Low-risk internal tool | GO | No risk signals — SSO-gated, anonymized, read-only |
+| Critical data exposure | NO-GO | Routes to all three teams — PII in the open, no auth, no encryption |
+| Third-party integration | CONDITIONAL | Routes to security + privacy — API keys in config, PII in vendor logs |
+| ML credit scoring | NO-GO | Routes to privacy + GRC — automated decisions, bias-prone training data |
+| Healthcare portal | NO-GO | Routes to all three teams — PHI to third-party LLM, weak auth |
+| Vague description | Cautious | Flags insufficient detail, recommends clarification before proceeding |
+| CSS change | GO | No risk signals — pure cosmetic, no data or backend changes |
 
-Consistent pass rate: **96--100%** (6-7/7). The specific case that fails varies across runs due to LLM stochasticity (severity calibration or rationale quality), but the core routing decisions (which teams need to review) are stable.
+Consistent pass rate: **96–100%** (6-7/7). The specific case that fails varies across runs due to LLM stochasticity (severity calibration or rationale quality), but the core routing decisions (which teams need to review) are stable.
 
 ## Safeguards
 
 | Safeguard | Implementation |
 |-----------|---------------|
-| Dry-run mode | `DRY_RUN=true` default locally -- no GitHub API calls |
-| Input validation | 20--10,000 character limits on feature descriptions |
+| Dry-run mode | `DRY_RUN=true` default locally — no GitHub API calls |
+| Input validation | 20–10,000 character limits on feature descriptions |
 | Output validation | Pydantic schema enforcement on all agent outputs |
 | No shell injection | `subprocess` with argument lists, never `shell=True` |
 | Secret management | API keys via env vars / GitHub Secrets only |
@@ -195,11 +199,11 @@ secureflow/
 | [Pydantic AI](https://ai.pydantic.dev/) | Agent framework with structured output |
 | [pydantic-evals](https://ai.pydantic.dev/evals/) | Evaluation framework with LLM judges |
 | OpenAI gpt-4o-mini | LLM backend |
-| GitHub Actions | CI/CD -- triggers on issue labeling |
+| GitHub Actions | CI/CD — triggers on issue labeling |
 | `gh` CLI | Issue creation via `asyncio.create_subprocess_exec` |
 | fpdf2 | PDF report generation |
 | matplotlib | Architecture diagram + evaluation charts |
 
 ## Author
 
-Tim Wilcoxson -- February 2026
+Tim Wilcoxson — February 2026
