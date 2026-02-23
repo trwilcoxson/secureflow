@@ -6,7 +6,9 @@ SecureFlow is a multi-agent triage system that screens feature descriptions for 
 
 ### Demo
 
-https://github.com/trwilcoxson/secureflow/releases/download/v1.0/secureflow_demo.webm
+
+https://github.com/user-attachments/assets/acf635d5-4206-4cbc-911a-01511dbd1121
+
 
 ## How It Works
 
@@ -207,3 +209,4 @@ secureflow/
 ## Author
 
 Tim Wilcoxson — February 2026
+
