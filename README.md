@@ -6,7 +6,7 @@ SecureFlow is a multi-agent triage system that screens feature descriptions for 
 
 ### Demo
 
-<video src="https://github.com/user-attachments/assets/acf635d5-4206-4cbc-911a-01511dbd1121" autoplay loop muted playsinline width="100%"></video>
+![SecureFlow Demo](demo/secureflow_demo.gif)
 
 ## How It Works
 
