@@ -98,7 +98,7 @@ prompt_toolkit==3.0.52
 propcache==0.4.1
 protobuf==6.33.5
 py-key-value-aio==0.4.4
-pyasn1==0.6.2
+pyasn1==0.6.3
 pyasn1_modules==0.4.2
 pycparser==3.0
 pydantic==2.12.5
