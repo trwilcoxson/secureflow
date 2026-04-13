@@ -92,7 +92,7 @@ opentelemetry-util-http==0.60b1
 packaging==25.0
 pandas==3.0.1
 pathable==0.5.0
-pillow==12.1.1
+pillow==12.2.0
 platformdirs==4.9.2
 prompt_toolkit==3.0.52
 propcache==0.4.1
